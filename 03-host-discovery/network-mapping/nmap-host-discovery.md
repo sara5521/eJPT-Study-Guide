@@ -283,9 +283,8 @@ while read host; do nmap -Pn -sV $host; done < live_hosts.txt
 - Nmap Version: 7.94SVN
 ```
 ### Commands Executed
-
-# Host discovery attempts
 ```bash
+# Host discovery attempts
 ping -c 5 demo.ine.local          # Failed - 100% packet loss
 nmap demo.ine.local              # Host appears down
 nmap -Pn demo.ine.local          # Successful bypass
