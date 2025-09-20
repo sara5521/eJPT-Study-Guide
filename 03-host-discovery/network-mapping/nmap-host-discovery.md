@@ -273,16 +273,19 @@ while read host; do nmap -Pn -sV $host; done < live_hosts.txt
 4. **Service Lists:** Maintain inventory of identified applications and versions
 
 ### Report Template Structure:
-```markdown
+
 ## Host Discovery Results
 
 ### Target Information
+```
 - Target: demo.ine.local (10.0.18.217)
 - Scan Date: 2024-07-04 13:30 IST
 - Nmap Version: 7.94SVN
-
+```
 ### Commands Executed
+
 # Host discovery attempts
+```
 ping -c 5 demo.ine.local          # Failed - 100% packet loss
 nmap demo.ine.local              # Host appears down
 nmap -Pn demo.ine.local          # Successful bypass
@@ -299,9 +302,9 @@ nmap -Pn -sV -p 80 demo.ine.local # Service detection
 - Windows host with RDP (3389) and SMB (445) exposed
 - Web service running potentially vulnerable HttpFileServer
 - Firewall configured but inconsistent port filtering
-```
 
 ### Automation Scripts:
+```bash
 #!/bin/bash
 # Host discovery automation script
 target=$1
