@@ -277,7 +277,7 @@ while read host; do nmap -Pn -sV $host; done < live_hosts.txt
 ## Host Discovery Results
 
 ### Target Information
-```
+```bash
 - Target: demo.ine.local (10.0.18.217)
 - Scan Date: 2024-07-04 13:30 IST
 - Nmap Version: 7.94SVN
@@ -285,7 +285,7 @@ while read host; do nmap -Pn -sV $host; done < live_hosts.txt
 ### Commands Executed
 
 # Host discovery attempts
-```
+```bash
 ping -c 5 demo.ine.local          # Failed - 100% packet loss
 nmap demo.ine.local              # Host appears down
 nmap -Pn demo.ine.local          # Successful bypass
