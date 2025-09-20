@@ -87,9 +87,9 @@ nmap -sV target              # Service version detection
 | `-oX` | XML output | `nmap -oX scan.xml target` |
 | `-A` | Aggressive scan | `nmap -A target` |
 
-## 🧪 Real Lab Examples
+## 🧪 Real Lab Example
 
-### Example 1: Basic Connectivity Test (INE Lab Scenario)
+### Basic Connectivity Test (INE Lab Scenario)
 ```bash
 # Step 1: Initial ping test
 ping -c 5 demo.ine.local
@@ -103,7 +103,7 @@ nmap demo.ine.local
 # Nmap done: 1 IP address (0 hosts up) scanned in 3.06 seconds
 ```
 
-### Example 2: Bypassing Ping with -Pn Option
+### Bypassing Ping with -Pn Option
 ```bash
 # Step 3: Force scan bypassing ping
 nmap -Pn demo.ine.local
@@ -122,7 +122,7 @@ nmap -Pn demo.ine.local
 # Nmap done: 1 IP address (1 host up) scanned in 4.47 seconds
 ```
 
-### Example 3: Testing Specific Closed Port
+### Testing Specific Closed Port
 ```bash
 # Step 4: Test a specific port that should be filtered
 nmap -Pn -p 443 demo.ine.local
@@ -134,7 +134,7 @@ nmap -Pn -p 443 demo.ine.local
 # Nmap done: 1 IP address (1 host up) scanned in 2.05 seconds
 ```
 
-### Example 4: Service Version Detection
+### Service Version Detection
 ```bash
 # Step 5: Discover service versions on open ports
 nmap -Pn -sV -p 80 demo.ine.local
@@ -282,7 +282,6 @@ while read host; do nmap -Pn -sV $host; done < live_hosts.txt
 - Nmap Version: 7.94SVN
 
 ### Commands Executed
-```bash
 # Host discovery attempts
 ping -c 5 demo.ine.local          # Failed - 100% packet loss
 nmap demo.ine.local              # Host appears down
@@ -303,7 +302,6 @@ nmap -Pn -sV -p 80 demo.ine.local # Service detection
 ```
 
 ### Automation Scripts:
-```bash
 #!/bin/bash
 # Host discovery automation script
 target=$1
