@@ -2,6 +2,8 @@
 
 > **A comprehensive, study-focused methodology guide covering systematic penetration testing approaches with detailed explanations, practical examples, and eJPT exam preparation materials.**
 
+**Document Path:** `01-theory-foundations/ejpt-methodology.md`
+
 ---
 
 ## 📚 Table of Contents
