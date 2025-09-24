@@ -7,7 +7,7 @@
 
 ---
 
-## 📚 Table of Contents
+## 📋 Table of Contents
 
 1. [Introduction to NSE](#introduction-to-nse)
 2. [Installation and Environment Setup](#installation-and-environment-setup)
