@@ -6,7 +6,7 @@
 
 ---
 
-## 📑 Table of Contents
+## 📋 Table of Contents
 1. [Introduction & Core Concepts](#introduction--core-concepts)
 2. [Database Types & Default Ports](#database-types--default-ports)
 3. [Tools & Installation](#tools--installation)
