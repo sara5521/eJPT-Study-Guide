@@ -1,661 +1,416 @@
-# 🌐 Networking Fundamentals - Complete Guide
+# 🌐 Networking Fundamentals - eJPT Foundation Knowledge
 
-Understanding networking fundamentals is essential for penetration testing and the eJPT certification. This comprehensive guide covers all core networking concepts required for successful security assessments.
-
+Essential networking concepts and protocols for penetration testing and the eJPT certification exam.
 **Location:** `01-theory-foundations/networking-fundamentals.md`
 
-## 📋 Table of Contents
-1. [OSI Model - 7 Layer Architecture](#osi-model)
-2. [TCP vs UDP - Protocol Comparison](#tcp-vs-udp) 
-3. [Subnetting & CIDR Notation](#subnetting)
-4. [Ports & Protocols Essentials](#ports-protocols)
-5. [eJPT Network Requirements](#ejpt-requirements)
-6. [Practical Integration Examples](#practical-examples)
+## 🎯 What is Networking for Penetration Testing?
 
----
+Networking forms the backbone of all penetration testing activities. Understanding how networks function, communicate, and can be exploited is crucial for successful ethical hacking. This foundation covers the essential protocols, services, and concepts that every penetration tester must master.
 
-## 🎯 OSI Model - 7 Layer Architecture {#osi-model}
+Key areas include:
+- Network models and architecture
+- TCP/IP protocol suite
+- Common ports and services
+- Network addressing and routing
+- Protocol analysis and exploitation
 
-The OSI (Open Systems Interconnection) model is a conceptual framework that standardizes network communication functions into seven distinct layers. Each layer has specific responsibilities and communicates with the layers directly above and below it.
+## 📚 Network Models and Architecture
 
-### Why OSI Matters for Pentesting
-- **Attack Vector Mapping:** Understand where attacks can occur in network communication
-- **Systematic Troubleshooting:** Debug network issues layer by layer
-- **Security Assessment:** Identify vulnerabilities at different network levels
-- **Targeted Exploitation:** Plan attacks against specific network layers
+### OSI Model (7 Layers)
+Understanding the OSI model helps identify where attacks occur and how to troubleshoot network issues.
 
-### The 7 Layers of OSI Model
+| Layer | Name | Function | Protocols/Examples | eJPT Relevance |
+|-------|------|----------|-------------------|----------------|
+| 7 | Application | User interface | HTTP, FTP, SSH, DNS | Web attacks, service enumeration |
+| 6 | Presentation | Data formatting | SSL/TLS, encryption | Certificate attacks, encryption flaws |
+| 5 | Session | Session management | NetBIOS, SQL sessions | Session hijacking, persistence |
+| 4 | Transport | End-to-end delivery | TCP, UDP | Port scanning, service discovery |
+| 3 | Network | Routing | IP, ICMP, IPSec | Network discovery, routing attacks |
+| 2 | Data Link | Frame delivery | Ethernet, ARP | ARP spoofing, MAC attacks |
+| 1 | Physical | Hardware transmission | Cables, switches | Physical access, network tapping |
 
-#### Layer 7: Application Layer 🖥️
-**Function:** User interface and network services  
-**Protocols:** HTTP, HTTPS, FTP, SSH, Telnet, SMTP, DNS  
-**Pentesting Focus:** Web application attacks, protocol exploitation
+### TCP/IP Model (4 Layers)
+The practical model used in real networks:
 
-#### Layer 6: Presentation Layer 🎨
-**Function:** Data formatting, encryption, compression  
-**Protocols:** SSL/TLS, JPEG, GIF, ASCII  
-**Pentesting Focus:** Encryption weaknesses, data format attacks
+1. **Application Layer** (HTTP, FTP, SSH, DNS)
+2. **Transport Layer** (TCP, UDP) 
+3. **Internet Layer** (IP, ICMP)
+4. **Network Access Layer** (Ethernet, ARP)
 
-#### Layer 5: Session Layer 🤝
-**Function:** Session management, connection establishment  
-**Protocols:** NetBIOS, RPC, SQL sessions  
-**Pentesting Focus:** Session hijacking, session fixation
+## 🔌 Essential Protocols for Penetration Testing
 
-#### Layer 4: Transport Layer 🚛
-**Function:** End-to-end communication, reliability  
-**Protocols:** TCP, UDP  
-**Pentesting Focus:** Port scanning, service enumeration
-
-#### Layer 3: Network Layer 🗺️
-**Function:** Routing, logical addressing  
-**Protocols:** IP, ICMP, ARP, OSPF  
-**Pentesting Focus:** IP spoofing, routing attacks, ICMP tunneling
-
-#### Layer 2: Data Link Layer 🔗
-**Function:** Frame formatting, error detection, MAC addressing  
-**Protocols:** Ethernet, WiFi (802.11), PPP  
-**Pentesting Focus:** MAC spoofing, ARP poisoning, WiFi attacks
-
-#### Layer 1: Physical Layer ⚡
-**Function:** Physical transmission of raw bits  
-**Components:** Cables, switches, hubs, wireless signals  
-**Pentesting Focus:** Physical access, cable tapping, wireless interception
-
-### OSI Layer Examples
-
-#### HTTP Communication Analysis
+### Internet Protocol (IP)
 ```bash
-# Capturing HTTP traffic to analyze OSI layers
-tcpdump -i eth0 -n host 192.168.1.100 and port 80
+# IPv4 Address Structure
+192.168.1.100/24
+# Network: 192.168.1.0
+# Host: 100  
+# Subnet Mask: 255.255.255.0 (/24)
 
-# Layer analysis in captured packet:
-# Layer 1: Physical - Ethernet cable transmission
-# Layer 2: Data Link - Ethernet frame (MAC addresses)
-# Layer 3: Network - IP packet (192.168.1.50 → 192.168.1.100)
-# Layer 4: Transport - TCP segment (port 45678 → 80)
-# Layer 5: Session - HTTP session establishment
-# Layer 6: Presentation - HTML/CSS formatting
-# Layer 7: Application - HTTP GET request
+# IPv6 Address Structure  
+2001:db8::1/64
+# Network: 2001:db8::/64
+# Host: ::1
 ```
 
-#### SSH Connection Layers
+### Transmission Control Protocol (TCP)
+**Characteristics:**
+- Connection-oriented
+- Reliable delivery
+- Error checking
+- Flow control
+
+**TCP Three-Way Handshake:**
+1. Client → Server: SYN
+2. Server → Client: SYN-ACK  
+3. Client → Server: ACK
+
+**TCP Flags Important for Scanning:**
+| Flag | Purpose | Penetration Testing Use |
+|------|---------|------------------------|
+| SYN | Synchronize | Port scanning, connection establishment |
+| ACK | Acknowledge | Firewall evasion, connection tracking |
+| FIN | Finish | Stealth scanning, connection termination |
+| RST | Reset | Port closed indication, connection reset |
+| PSH | Push | Data transmission priority |
+| URG | Urgent | Data priority signaling |
+
+### User Datagram Protocol (UDP)
+**Characteristics:**
+- Connectionless
+- Fast transmission
+- No reliability guarantees
+- Used for real-time applications
+
+## 🚪 Common Ports and Services
+
+### Critical TCP Ports for eJPT:
+| Port | Service | Description | Attack Vectors |
+|------|---------|-------------|----------------|
+| 21 | FTP | File Transfer Protocol | Anonymous access, brute force, bounce attacks |
+| 22 | SSH | Secure Shell | Brute force, key-based attacks, tunneling |
+| 23 | Telnet | Unencrypted remote access | Credential sniffing, clear text passwords |
+| 25 | SMTP | Simple Mail Transfer Protocol | Email enumeration, relay attacks |
+| 53 | DNS | Domain Name System | Zone transfers, DNS poisoning, enumeration |
+| 80 | HTTP | Hypertext Transfer Protocol | Web application attacks, directory traversal |
+| 110 | POP3 | Post Office Protocol v3 | Email credential attacks |
+| 135 | RPC | Remote Procedure Call | Windows enumeration, privilege escalation |
+| 139 | NetBIOS | Network Basic Input/Output System | SMB enumeration, null sessions |
+| 143 | IMAP | Internet Message Access Protocol | Email credential attacks |
+| 443 | HTTPS | HTTP Secure | SSL/TLS attacks, certificate issues |
+| 445 | SMB | Server Message Block | File share enumeration, EternalBlue |
+| 993 | IMAPS | IMAP Secure | Secure email attacks |
+| 995 | POP3S | POP3 Secure | Secure email attacks |
+
+### Critical UDP Ports for eJPT:
+| Port | Service | Description | Attack Vectors |
+|------|---------|-------------|----------------|
+| 53 | DNS | Domain Name System | DNS enumeration, amplification attacks |
+| 67/68 | DHCP | Dynamic Host Configuration Protocol | DHCP spoofing, network discovery |
+| 69 | TFTP | Trivial File Transfer Protocol | File enumeration, configuration extraction |
+| 123 | NTP | Network Time Protocol | Time-based attacks, amplification |
+| 161 | SNMP | Simple Network Management Protocol | Community string attacks, information disclosure |
+| 500 | IKE | Internet Key Exchange | VPN enumeration, IPSec attacks |
+
+## 🧪 Real Lab Examples
+
+### Example 1: Network Discovery with Ping
 ```bash
-# SSH connection establishment
-ssh user@192.168.1.100
+# Test single host connectivity
+ping -c 4 192.168.1.1
+# Output: 4 packets transmitted, 4 received, 0% packet loss
 
-# Complete layer interaction:
-# Layer 7: SSH application protocol
-# Layer 6: SSH encryption/compression
-# Layer 5: SSH session management
-# Layer 4: TCP connection (port 22)
-# Layer 3: IP routing
-# Layer 2: Ethernet framing
-# Layer 1: Physical transmission
+# Ping sweep for network discovery
+ping -c 1 192.168.1.1 && echo "Host is up"
+# Output: Host is up
+
+# Advanced ping with specific packet size
+ping -c 3 -s 1000 192.168.1.1
+# Output: Testing with larger packets to detect MTU issues
 ```
 
-### OSI vs TCP/IP Model Comparison
-
-| OSI Layer | TCP/IP Layer | Key Protocols | Pentesting Focus |
-|-----------|--------------|---------------|------------------|
-| Application (7) | Application | HTTP, FTP, SSH | Web attacks, service exploitation |
-| Presentation (6) | Application | SSL/TLS, encryption | Crypto attacks, format manipulation |
-| Session (5) | Application | NetBIOS, RPC | Session attacks, hijacking |
-| Transport (4) | Transport | TCP, UDP | Port scanning, service enum |
-| Network (3) | Internet | IP, ICMP, ARP | IP spoofing, routing attacks |
-| Data Link (2) | Network Access | Ethernet, WiFi | ARP poisoning, MAC spoofing |
-| Physical (1) | Network Access | Cables, wireless | Physical access, interception |
-
-### Memory Aids and Mnemonics
-
-**Popular Mnemonics:**
-- **"All People Seem To Need Data Processing"** (Application → Physical)
-- **"Please Do Not Throw Sausage Pizza Away"** (Physical → Application)
-- **"All Pentesters Should Try New Data Protocols"** (Security-focused version)
-
-**Layer Function Summary:**
-```
-7 - Application:  "What the user sees"
-6 - Presentation: "How data is formatted"  
-5 - Session:      "Managing conversations"
-4 - Transport:    "End-to-end delivery"
-3 - Network:      "Finding the path"
-2 - Data Link:    "Node-to-node delivery"
-1 - Physical:     "Bits on the wire"
-```
-
----
-
-## 🔧 TCP vs UDP - Protocol Comparison {#tcp-vs-udp}
-
-TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are the two primary transport layer protocols. Understanding their differences is crucial for network reconnaissance, service enumeration, and exploitation techniques.
-
-### Protocol Characteristics
-
-#### TCP (Transmission Control Protocol)
-- **Connection-oriented:** Establishes a session before data transfer
-- **Reliable:** Guarantees packet delivery and order
-- **Flow control:** Manages data transmission rate
-- **Error checking:** Built-in error detection and correction
-- **Use Cases:** HTTP, HTTPS, SSH, FTP, SMTP, POP3
-
-#### UDP (User Datagram Protocol)
-- **Connectionless:** No session establishment required
-- **Unreliable:** No delivery guarantee
-- **Fast:** Minimal overhead for quick transmission
-- **Fire-and-forget:** Sends data without confirmation
-- **Use Cases:** DNS, DHCP, SNMP, TFTP, Video streaming
-
-### Technical Differences
-
-#### TCP Three-Way Handshake
+### Example 2: Protocol Analysis with Netstat
 ```bash
-# TCP Connection Process
-Client → Server: SYN (Synchronize)
-Server → Client: SYN-ACK (Synchronize-Acknowledge)  
-Client → Server: ACK (Acknowledge)
-# Connection established
+# View active connections
+netstat -an | head -10
+# Output: Shows active TCP and UDP connections with numerical addresses
+
+# View listening services
+netstat -tlnp
+# Output: Shows listening TCP services with process information
+
+# View routing table
+netstat -rn  
+# Output: Displays routing table with gateway information
 ```
 
-#### UDP Communication
+### Example 3: ARP Table Investigation
 ```bash
-# UDP Communication Process
-Client → Server: Data packet
-# No handshake, no confirmation required
+# View ARP table
+arp -a
+# Output: Shows IP to MAC address mappings on local network
+
+# ARP for specific host
+arp 192.168.1.1
+# Output: Shows MAC address for gateway
+
+# Clear ARP cache (requires sudo)
+sudo arp -d 192.168.1.100
+# Output: Removes specific ARP entry
 ```
 
-### Protocol Comparison Table
-
-| Feature | TCP | UDP |
-|---------|-----|-----|
-| **Connection** | Connection-oriented | Connectionless |
-| **Reliability** | Reliable delivery | Best-effort delivery |
-| **Speed** | Slower (overhead) | Faster (minimal overhead) |
-| **Header Size** | 20 bytes minimum | 8 bytes fixed |
-| **Flow Control** | Yes | No |
-| **Error Recovery** | Yes | No |
-| **Ordering** | Guaranteed order | No ordering guarantee |
-| **Use Cases** | Web, email, file transfer | DNS, DHCP, streaming |
-
-### Pentesting Applications
-
-#### TCP Connection Analysis with Nmap
+### Example 4: Network Interface Analysis
 ```bash
-# TCP SYN scan showing connection-oriented behavior
-nmap -sS -p 80,443 192.168.1.100
+# View network interfaces
+ip addr show
+# Output: Shows all network interfaces with IP assignments
 
-# Expected output
-PORT    STATE SERVICE
-80/tcp  open  http
-443/tcp open  https
+# View interface statistics
+ip -s link show eth0
+# Output: Shows packet statistics for specific interface
+
+# View routing table with IP command
+ip route show
+# Output: Shows routing table with more detailed information than netstat
 ```
 
-#### UDP Service Discovery
-```bash
-# UDP scan for common UDP services
-nmap -sU -p 53,67,161 192.168.1.100
+## 🎯 eJPT Exam Focus
 
-# Expected output  
-PORT    STATE         SERVICE
-53/udp  open          domain
-67/udp  open|filtered dhcps
-161/udp open|filtered snmp
+### Essential Skills for eJPT:
+- **Network addressing and subnetting** (15% of networking questions)
+- **Protocol identification and analysis** (20% of networking questions)  
+- **Port and service knowledge** (25% of networking questions)
+- **Network discovery techniques** (20% of networking questions)
+- **Traffic analysis basics** (20% of networking questions)
+
+### Critical Commands to Master:
+```bash
+# Network discovery commands
+ping -c 1 target_ip                    # Test connectivity
+arp -a                                 # View ARP table  
+netstat -rn                           # View routing table
+ip addr show                          # Show interfaces
+ip route show                         # Show routes
+
+# Service identification commands  
+netstat -tlnp                         # Show listening TCP services
+ss -tlnp                              # Modern alternative to netstat
+lsof -i                               # Show network connections by process
 ```
 
-#### Protocol Behavior with Netcat
-```bash
-# TCP connection test
-nc -v 192.168.1.100 80
-# Output: Connection to 192.168.1.100 80 port [tcp/http] succeeded!
+### eJPT Exam Scenarios:
+1. **Network Discovery Scenario:**
+   - Required skills: Identify live hosts on network segment
+   - Expected commands: ping sweeps, arp scans
+   - Success criteria: Create accurate network map
 
-# UDP connection test  
-nc -u -v 192.168.1.100 53
-# Output: Connection to 192.168.1.100 53 port [udp/domain] succeeded!
+2. **Service Enumeration Scenario:**
+   - Required skills: Identify running services and versions
+   - Expected commands: netstat, ss, service detection
+   - Success criteria: Document all accessible services
+
+3. **Protocol Analysis Scenario:**
+   - Required skills: Understand traffic flow and communication
+   - Expected commands: tcpdump basics, netstat analysis
+   - Success criteria: Identify communication patterns
+
+### Exam Tips and Tricks:
+- **Tip 1:** Memorize well-known ports - they appear in multiple questions
+- **Tip 2:** Understand the difference between TCP and UDP scanning results
+- **Tip 3:** Practice subnetting calculations without a calculator
+- **Tip 4:** Know how to identify services even when running on non-standard ports
+
+### Common eJPT Questions:
+- What service typically runs on port 445?
+- How do you identify if a host is alive without port scanning?
+- What's the difference between TCP and UDP protocols?
+- How do you determine the network range from an IP address?
+
+## 🔢 Subnetting and IP Addressing
+
+### CIDR Notation and Subnet Masks
+```bash
+# Common subnet masks and their meanings
+/24 = 255.255.255.0    # 254 hosts
+/25 = 255.255.255.128  # 126 hosts  
+/26 = 255.255.255.192  # 62 hosts
+/27 = 255.255.255.224  # 30 hosts
+/28 = 255.255.255.240  # 14 hosts
+/29 = 255.255.255.248  # 6 hosts
+/30 = 255.255.255.252  # 2 hosts (point-to-point links)
 ```
 
-### Common TCP and UDP Ports
-
-#### Essential TCP Ports
-| Port | Service | Usage |
-|------|---------|--------|
-| 21 | FTP | File transfer |
-| 22 | SSH | Secure shell |
-| 23 | Telnet | Remote access |
-| 25 | SMTP | Email transfer |
-| 53 | DNS | Domain resolution |
-| 80 | HTTP | Web traffic |
-| 110 | POP3 | Email retrieval |
-| 143 | IMAP | Email access |
-| 443 | HTTPS | Secure web |
-| 993 | IMAPS | Secure IMAP |
-| 995 | POP3S | Secure POP3 |
-
-#### Essential UDP Ports
-| Port | Service | Usage |
-|------|---------|--------|
-| 53 | DNS | Domain queries |
-| 67/68 | DHCP | IP assignment |
-| 69 | TFTP | Trivial file transfer |
-| 123 | NTP | Time synchronization |
-| 161/162 | SNMP | Network management |
-| 500 | IKE | VPN key exchange |
-| 514 | Syslog | System logging |
-| 1194 | OpenVPN | VPN connection |
-
----
-
-## 🌐 Subnetting & CIDR Notation {#subnetting}
-
-Subnetting is the practice of dividing a network into smaller sub-networks (subnets) to improve security, performance, and organization. It's essential for penetration testers to understand network boundaries and identify target ranges during assessments.
-
-### IP Address Fundamentals
-
-#### IP Address Classes
+### Private IP Address Ranges
 ```bash
-# Class A: 1.0.0.0 to 126.255.255.255
-# Default subnet mask: 255.0.0.0 (/8)
-# Private range: 10.0.0.0/8
+# Class A Private
+10.0.0.0/8        # 10.0.0.0 - 10.255.255.255
 
-# Class B: 128.0.0.0 to 191.255.255.255  
-# Default subnet mask: 255.255.0.0 (/16)
-# Private range: 172.16.0.0/12
+# Class B Private  
+172.16.0.0/12     # 172.16.0.0 - 172.31.255.255
 
-# Class C: 192.0.0.0 to 223.255.255.255
-# Default subnet mask: 255.255.255.0 (/24)
-# Private range: 192.168.0.0/16
+# Class C Private
+192.168.0.0/16    # 192.168.0.0 - 192.168.255.255
+
+# Loopback
+127.0.0.0/8       # 127.0.0.0 - 127.255.255.255
+
+# Link-Local
+169.254.0.0/16    # 169.254.0.0 - 169.254.255.255
 ```
 
-#### CIDR Notation Basics
+### Quick Subnetting Practice
 ```bash
-# CIDR format: IP_ADDRESS/PREFIX_LENGTH
-192.168.1.0/24    # /24 = 255.255.255.0
-10.0.0.0/8        # /8 = 255.0.0.0
-172.16.0.0/16     # /16 = 255.255.0.0
+# Example: Network 192.168.1.0/26
+# Subnet mask: 255.255.255.192
+# Network address: 192.168.1.0
+# First usable: 192.168.1.1  
+# Last usable: 192.168.1.62
+# Broadcast: 192.168.1.63
+# Next subnet: 192.168.1.64
 ```
 
-### Subnet Calculation Methods
+## ⚠️ Common Networking Issues & Troubleshooting
 
-#### Quick Calculation Table
-| CIDR | Subnet Mask | Hosts per Subnet | Number of Subnets |
-|------|-------------|------------------|-------------------|
-| /24 | 255.255.255.0 | 254 | 1 |
-| /25 | 255.255.255.128 | 126 | 2 |
-| /26 | 255.255.255.192 | 62 | 4 |
-| /27 | 255.255.255.224 | 30 | 8 |
-| /28 | 255.255.255.240 | 14 | 16 |
-| /29 | 255.255.255.248 | 6 | 32 |
-| /30 | 255.255.255.252 | 2 | 64 |
-
-#### Essential Formulas
-| Calculation | Formula | Purpose |
-|-------------|---------|---------|
-| Number of Subnets | 2^(borrowed bits) | How many subnets created |
-| Hosts per Subnet | 2^(host bits) - 2 | Available host addresses |
-| Subnet Increment | 256 - subnet mask octet | Spacing between subnets |
-| Network Address | First address in range | Identifies the subnet |
-| Broadcast Address | Last address in range | Subnet broadcast |
-| Host Range | Network + 1 to Broadcast - 1 | Assignable addresses |
-
-#### Step-by-Step Calculation Example
+### Issue 1: No Network Connectivity
+**Problem:** Cannot reach target hosts or services
+**Troubleshooting Steps:**
 ```bash
-# Example: 192.168.1.0/26
+# Step 1: Check local interface
+ip addr show
 
-# Step 1: Identify host bits
-32 - 26 = 6 host bits
+# Step 2: Test local connectivity  
+ping -c 1 127.0.0.1
 
-# Step 2: Calculate hosts per subnet  
-2^6 - 2 = 64 - 2 = 62 hosts
+# Step 3: Test gateway connectivity
+ping -c 1 $(ip route | grep default | awk '{print $3}')
 
-# Step 3: Find subnet increment
-256 - 192 = 64
-
-# Step 4: List the subnets
-192.168.1.0/26    (hosts: .1 to .62)
-192.168.1.64/26   (hosts: .65 to .126)  
-192.168.1.128/26  (hosts: .129 to .190)
-192.168.1.192/26  (hosts: .193 to .254)
+# Step 4: Test DNS resolution
+nslookup google.com
 ```
 
-### Practical Pentesting Examples
-
-#### Network Scope Identification
+### Issue 2: Slow Network Performance
+**Problem:** Network connections are slow or timing out
+**Diagnosis:**
 ```bash
-# Target network discovery during assessment:
-# Found network: 192.168.100.0/22
+# Check for packet loss
+ping -c 10 target_ip
 
-# Understanding the scope:
-# /22 = 255.255.252.0
-# Network range: 192.168.100.0 - 192.168.103.255
-# Total hosts: 1022 (4 x /24 networks combined)
+# Check network interface errors
+ip -s link show eth0
 
-# Individual /24 subnets within /22:
-192.168.100.0/24  # DMZ network
-192.168.101.0/24  # User network  
-192.168.102.0/24  # Server network
-192.168.103.0/24  # Management network
+# Monitor network traffic
+iftop -i eth0
 ```
 
-#### VLSM Scenario
+### Issue 3: DNS Resolution Problems
+**Problem:** Cannot resolve domain names
+**Solution:**
 ```bash
-# Network: 172.16.0.0/16
-# Requirements:
-# - Sales: 500 hosts
-# - IT: 100 hosts  
-# - Management: 50 hosts
-# - Point-to-point links: 2 hosts each (3 links needed)
+# Test DNS servers
+nslookup google.com 8.8.8.8
 
-# Solution (largest to smallest):
-# Sales: 172.16.0.0/23 (510 hosts available)
-# IT: 172.16.2.0/25 (126 hosts available)
-# Management: 172.16.2.128/26 (62 hosts available)
-# Link 1: 172.16.2.192/30 (2 hosts available)
-# Link 2: 172.16.2.196/30 (2 hosts available)
-# Link 3: 172.16.2.200/30 (2 hosts available)
+# Check DNS configuration
+cat /etc/resolv.conf
+
+# Test with different DNS
+dig @1.1.1.1 example.com
 ```
 
----
+## 🔗 Integration with Penetration Testing Tools
 
-## 🔌 Ports & Protocols Essentials {#ports-protocols}
-
-Understanding network ports and protocols is fundamental to penetration testing and network security assessment. Ports are communication endpoints that allow different services to run simultaneously on a single system.
-
-### Port Categories and Ranges
-
-#### Port Range Classification
+### Network Discovery Chain
 ```bash
-# Well-known ports (System Ports)
-Range: 0-1023
-Usage: Reserved for system services
-Access: Requires administrative privileges
+# Phase 1: Network range identification
+netdiscover -r 192.168.1.0/24
 
-# Registered ports (User Ports)  
-Range: 1024-49151
-Usage: Applications and services
-Access: Normal user privileges
-
-# Dynamic/Private ports (Ephemeral Ports)
-Range: 49152-65535
-Usage: Temporary client connections
-Access: Automatically assigned
-```
-
-#### Port States in Scanning
-| State | Description | Security Implication |
-|-------|-------------|---------------------|
-| **Open** | Service actively listening | Potential attack vector |
-| **Closed** | Port accessible but no service | System is reachable |
-| **Filtered** | Blocked by firewall/filter | Security controls present |
-| **Unfiltered** | Accessible but state unknown | Requires further testing |
-| **Open\|Filtered** | Nmap cannot determine state | Possible stealth filtering |
-
-### Critical Ports for Penetration Testing
-
-#### Web Services Ports
-| Port | Service | Protocol | Security Focus |
-|------|---------|----------|----------------|
-| **80** | HTTP | TCP | Unencrypted web traffic |
-| **443** | HTTPS | TCP | Encrypted web traffic |
-| **8080** | HTTP Proxy | TCP | Alternative HTTP port |
-| **8443** | HTTPS Alternative | TCP | Alternative HTTPS port |
-
-#### File Transfer Ports
-| Port | Service | Protocol | Attack Vectors |
-|------|---------|----------|----------------|
-| **21** | FTP | TCP | Anonymous login, clear-text |
-| **22** | SSH/SFTP | TCP | Brute force, weak keys |
-| **69** | TFTP | UDP | No authentication |
-| **989/990** | FTPS | TCP | Encrypted FTP variants |
-
-#### Email Services Ports
-| Port | Service | Protocol | Vulnerabilities |
-|------|---------|----------|----------------|
-| **25** | SMTP | TCP | Email relay, spam |
-| **110** | POP3 | TCP | Clear-text authentication |
-| **143** | IMAP | TCP | Email access protocols |
-| **993/995** | IMAPS/POP3S | TCP | Encrypted email variants |
-
-#### Database Ports
-| Port | Service | Protocol | Common Attacks |
-|------|---------|----------|----------------|
-| **3306** | MySQL | TCP | Default credentials, injection |
-| **1433** | MSSQL | TCP | SA account, stored procedures |
-| **5432** | PostgreSQL | TCP | Privilege escalation |
-| **1521** | Oracle | TCP | TNS listener attacks |
-
-#### Network Services Ports
-| Port | Service | Protocol | Exploitation Notes |
-|------|---------|----------|-------------------|
-| **53** | DNS | TCP/UDP | Zone transfers, cache poisoning |
-| **135** | RPC Endpoint | TCP | Windows RPC services |
-| **139** | NetBIOS | TCP | SMB over NetBIOS |
-| **445** | SMB | TCP | File sharing, lateral movement |
-
-#### Remote Access Ports
-| Port | Service | Protocol | Security Risks |
-|------|---------|----------|----------------|
-| **3389** | RDP | TCP | Windows Remote Desktop |
-| **5900** | VNC | TCP | Virtual Network Computing |
-| **23** | Telnet | TCP | Clear-text remote access |
-| **512-514** | R-services | TCP | Rlogin, rexec, rsh |
-
-### Protocol-Specific Examples
-
-#### Port Scanning and Service Identification
-```bash
-# Quick port scan of common services
-nmap -sS -p 21,22,23,25,53,80,110,139,143,443,993,995,1433,3306,3389,5432 192.168.1.100
-
-# Output Analysis:
-PORT     STATE SERVICE
-21/tcp   open  ftp
-22/tcp   open  ssh  
-80/tcp   open  http
-139/tcp  open  netbios-ssn
-445/tcp  open  microsoft-ds
-3306/tcp open  mysql
-
-# Service version detection
-nmap -sV -p 21,22,80,3306 192.168.1.100
-
-# Output:
-21/tcp   open  ftp     vsftpd 3.0.3
-22/tcp   open  ssh     OpenSSH 7.4
-80/tcp   open  http    Apache httpd 2.4.6
-3306/tcp open  mysql   MySQL 5.7.26
-```
-
-#### Protocol-Specific Enumeration
-```bash
-# HTTP service enumeration
-curl -I http://192.168.1.100
-# Output: Server headers and version information
-
-# FTP service testing  
-ftp 192.168.1.100
-# Test: anonymous login attempt
-Name: anonymous
-Password: anonymous@domain.com
-
-# SSH service testing
-ssh -V 192.168.1.100
-# Output: Protocol versions and algorithms supported
-
-# MySQL service testing
-mysql -h 192.168.1.100 -u root -p
-# Test: Default credentials and access
-```
-
-#### UDP Service Discovery
-```bash
-# UDP port scanning (slower but important)
-nmap -sU --top-ports 100 192.168.1.100
-
-# Common UDP services found:
-PORT    STATE SERVICE
-53/udp  open  dns
-69/udp  open  tftp  
-161/udp open  snmp
-
-# SNMP enumeration example
-snmpwalk -v2c -c public 192.168.1.100
-# Output: System information via SNMP
-```
-
----
-
-## 🎯 eJPT Network Requirements {#ejpt-requirements}
-
-### Essential Skills for eJPT (Coverage Percentages)
-
-#### OSI Model Knowledge (30% exam relevance)
-- **Layer identification** during network analysis
-- **Protocol classification** by OSI layer
-- **Attack vector mapping** to specific layers
-- **Troubleshooting approach** using layer methodology
-
-#### TCP/UDP Understanding (25% exam relevance)
-- **Protocol recognition** in network traffic
-- **Port scanning methodology** differences
-- **Service enumeration** based on protocol type
-- **Firewall evasion** techniques
-
-#### Subnetting Skills (85% exam importance)
-- **CIDR to subnet mask conversion**
-- **Host range calculation** 
-- **Network boundary identification**
-- **Subnet scope determination**
-
-#### Port/Protocol Knowledge (90% exam importance)
-- **Service identification** during reconnaissance
-- **Attack surface mapping** and vulnerability assessment
-- **Protocol-specific exploitation** techniques
-- **Common service vulnerabilities**
-
-### Critical Commands to Master
-
-#### Network Discovery
-```bash
-# Essential scanning commands
-nmap -sn 192.168.1.0/24              # Network discovery
-nmap -sS -sU target_ip                # TCP/UDP scanning
-nmap -sV target_ip                    # Service version detection
-nmap -p- target_ip                    # Full port range scan
-nmap --top-ports 1000 target_ip       # Most common 1000 ports
-```
-
-#### Service Enumeration
-```bash
-curl -I http://target_ip              # HTTP header analysis
-telnet target_ip port_number          # Manual service interaction
-nc -nv target_ip port_number          # Netcat connection testing
-```
-
-### Exam Tips and Best Practices
-
-#### Networking Fundamentals
-- **Tip 1:** Memorize OSI layer functions and common protocols
-- **Tip 2:** Understand TCP vs UDP differences for scanning strategies
-- **Tip 3:** Practice CIDR calculations manually and with tools
-- **Tip 4:** Know default ports for major services by memory
-
-#### Common eJPT Questions
-- Convert between CIDR notation and subnet masks
-- Identify which protocols services typically use (TCP/UDP)
-- Calculate network ranges and host counts
-- Map attack techniques to appropriate OSI layers
-
----
-
-## 🧪 Practical Integration Examples {#practical-examples}
-
-### Layer-Based Attack Approach
-```bash
-# Layer 1 - Physical attacks
-Physical network access
-Cable tapping
-Wireless signal interception
-
-# Layer 2 - Data Link attacks
-arp-scan -l                    # ARP scanning
-ettercap -T -M arp:remote     # ARP poisoning
-
-# Layer 3 - Network attacks
-nmap -sn 192.168.1.0/24       # Network discovery
-hping3 -S -p 80 target        # IP spoofing
-
-# Layer 4 - Transport attacks
-nmap -sS target               # TCP SYN scanning
-nmap -sU target               # UDP scanning
-
-# Layer 7 - Application attacks
-nikto -h target               # Web vulnerability scanning
-hydra -l admin -P passwords.txt target http-get
-```
-
-### Integrated Workflow Example
-```bash
-# Step 1: Network Discovery (using subnetting knowledge)
+# Phase 2: Host discovery  
 nmap -sn 192.168.1.0/24
 
-# Step 2: Port Scanning (TCP/UDP understanding)
-nmap -sS -sU -p- discovered_hosts
+# Phase 3: Service discovery
+nmap -sS -O 192.168.1.100
 
-# Step 3: Service Enumeration (port/protocol knowledge)
-nmap -sV -sC -p open_ports targets
-
-# Step 4: Layer-specific Analysis (OSI model application)
-# Layer 7: HTTP services → nikto, gobuster
-# Layer 4: Transport → detailed port analysis
-# Layer 3: Network → routing and subnet analysis
+# Phase 4: Service enumeration
+nmap -sC -sV -p 80,443 192.168.1.100
 ```
 
-### Documentation Template
-```markdown
-## Network Analysis - Complete Assessment
-
-### Network Scope (Subnetting)
-- Target Network: 192.168.1.0/24
-- Available Hosts: 254
-- Subnet Analysis: Single /24 network
-
-### Protocol Analysis (TCP/UDP)
-- TCP Services: 21, 22, 80, 443, 3306
-- UDP Services: 53, 161
-- Mixed Protocol: DNS (53/tcp, 53/udp)
-
-### OSI Layer Findings
-- Layer 7 (Application): HTTP, SSH, FTP services
-- Layer 4 (Transport): TCP/UDP port analysis
-- Layer 3 (Network): IP addressing and routing
-- Layer 2 (Data Link): ARP table analysis
-
-### Port/Service Summary
-- Critical Services: SSH (22), HTTP (80), MySQL (3306)
-- Security Concerns: Anonymous FTP, default credentials
-- Recommendations: Service hardening, access controls
-```
-
----
-
-## 📚 Quick Reference
-
-### Must-Know Conversions
+### Protocol Analysis Workflow
 ```bash
-/24 = 255.255.255.0    # Standard Class C
-/16 = 255.255.0.0      # Standard Class B  
-/8 = 255.0.0.0         # Standard Class A
-/30 = 255.255.255.252  # Point-to-point links
-/26 = 255.255.255.192  # Common subnet size
+# Capture network traffic
+tcpdump -i eth0 -w capture.pcap
+
+# Analyze protocols in captured traffic
+tcpdump -r capture.pcap -n | head -20
+
+# Filter specific protocols
+tcpdump -r capture.pcap 'tcp port 80'
 ```
 
-### Common Port Mnemonics
-- **HTTP:** "80 is Great!"
-- **HTTPS:** "443 is Secure!"
-- **SSH:** "22 is the Key!"
-- **FTP:** "21 for Fun Transfer!"
-- **Telnet:** "23 is Clear Text!"
+## 📝 Documentation and Reporting
 
-### OSI Memory Aid
-**"All Pentesters Should Try New Data Protocols"**
-- **A**pplication, **P**resentation, **S**ession, **T**ransport, **N**etwork, **D**ata Link, **P**hysical
+### Network Documentation Requirements
+When documenting network findings for eJPT reports:
 
-This comprehensive guide provides all networking fundamentals necessary for eJPT success, integrating OSI model understanding, protocol analysis, subnetting skills, and port/service knowledge into a unified learning resource.
+1. **Network Topology:** Document discovered networks and their relationships
+2. **Host Inventory:** List all discovered hosts with IP addresses and MAC addresses  
+3. **Service Matrix:** Create a table showing which services run on which hosts
+4. **Protocol Usage:** Document what protocols are in use on the network
+
+### Report Template Structure
+```markdown
+## Network Assessment Results
+
+### Network Scope
+- Target networks: 192.168.1.0/24, 10.0.0.0/24
+- Assessment date: [Date]
+- Tools used: ping, netstat, arp, nmap
+
+### Network Discovery  
+- Live hosts identified: X hosts
+- Network services: Y services across Z ports
+- Network protocols: TCP, UDP, ICMP analysis
+
+### Key Findings
+1. **Open Services:** List of accessible services
+2. **Network Protocols:** Protocols in use and potential vulnerabilities  
+3. **Network Architecture:** Topology and routing information
+
+### Recommendations
+1. Close unnecessary services
+2. Implement network segmentation
+3. Monitor network traffic for anomalies
+```
+
+### Evidence Collection
+```bash
+# Network scan results
+nmap -oA network_scan 192.168.1.0/24
+
+# Service enumeration results  
+netstat -tlnp > listening_services.txt
+
+# Network interface configuration
+ip addr show > network_interfaces.txt
+
+# Routing table
+ip route show > routing_table.txt
+```
+
+## 📚 Additional Resources
+
+### Essential Reading
+- **RFC 791:** Internet Protocol specification
+- **RFC 793:** Transmission Control Protocol specification
+- **IANA Port Numbers:** Official port assignments
+- **Subnet Calculator Tools:** Online subnetting practice
+
+### Practice Labs
+- **GNS3:** Network simulation for protocol practice
+- **Packet Tracer:** Cisco network simulation
+- **VirtualBox Labs:** Create virtual networks for testing
+- **TryHackMe Network Services:** Hands-on network enumeration
+
+### Advanced Topics for Further Study
+- **VLAN Concepts:** Virtual LAN implementation and attacks
+- **VPN Technologies:** IPSec, SSL VPN, and tunneling protocols  
+- **Network Security:** Firewalls, IDS/IPS, and network monitoring
+- **IPv6 Security:** Next-generation protocol considerations
