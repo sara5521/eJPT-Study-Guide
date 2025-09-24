@@ -6,6 +6,7 @@ NSE provides advanced capabilities for service detection, vulnerability scanning
 ## 🎯 What is Nmap Scripting Engine?
 
 The Nmap Scripting Engine (NSE) is a powerful feature that allows users to write and execute scripts to automate various network tasks. Key capabilities include:
+
 - Service and version detection
 - Vulnerability detection and exploitation
 - Network discovery and reconnaissance
@@ -15,10 +16,12 @@ The Nmap Scripting Engine (NSE) is a powerful feature that allows users to write
 ## 📦 Installation and Setup
 
 ### Prerequisites:
+
 - Nmap installed with NSE support
 - Lua runtime (usually included with Nmap)
 
 ### Installation:
+
 ```bash
 # NSE comes pre-installed with Nmap
 nmap --version
@@ -30,6 +33,7 @@ ls /usr/share/nmap/scripts/ | wc -l
 ```
 
 ### Script Categories:
+
 ```bash
 # View script categories
 nmap --script-help categories
@@ -42,12 +46,14 @@ nmap --script-help categories
 ## 🔧 Basic Usage and Syntax
 
 ### Basic Workflow:
+
 1. **Script Selection:** Choose appropriate scripts for target
-2. **Execution:** Run nmap with NSE scripts
-3. **Analysis:** Interpret script outputs
-4. **Follow-up:** Use results for further exploitation
+1. **Execution:** Run nmap with NSE scripts
+1. **Analysis:** Interpret script outputs
+1. **Follow-up:** Use results for further exploitation
 
 ### Command Structure:
+
 ```bash
 # Basic syntax
 nmap --script [category|script-name] target
@@ -60,29 +66,33 @@ nmap --script http-enum demo1.ine.local # Then enumerate HTTP
 ## ⚙️ Command Line Options
 
 ### Script Selection Options:
-| Option | Purpose | Example |
-|--------|---------|---------|
-| `--script [name]` | Run specific script | `nmap --script http-title target` |
-| `--script [category]` | Run script category | `nmap --script vuln target` |
-| `--script-args` | Pass script arguments | `nmap --script http-enum --script-args http-enum.basepath=/admin/ target` |
+
+|Option               |Purpose              |Example                                                                  |
+|---------------------|---------------------|-------------------------------------------------------------------------|
+|`--script [name]`    |Run specific script  |`nmap --script http-title target`                                        |
+|`--script [category]`|Run script category  |`nmap --script vuln target`                                              |
+|`--script-args`      |Pass script arguments|`nmap --script http-enum --script-args http-enum.basepath=/admin/ target`|
 
 ### Script Information Options:
-| Option | Purpose | Example |
-|--------|---------|---------|
-| `--script-help [name]` | Get script help | `nmap --script-help http-enum` |
-| `--script-trace` | Enable script debugging | `nmap --script-trace --script http-title target` |
-| `--script-updatedb` | Update script database | `nmap --script-updatedb` |
+
+|Option                |Purpose                |Example                                         |
+|----------------------|-----------------------|------------------------------------------------|
+|`--script-help [name]`|Get script help        |`nmap --script-help http-enum`                  |
+|`--script-trace`      |Enable script debugging|`nmap --script-trace --script http-title target`|
+|`--script-updatedb`   |Update script database |`nmap --script-updatedb`                        |
 
 ### Output Options:
-| Option | Purpose | Example |
-|--------|---------|---------|
-| `-oN file` | Normal output to file | `nmap --script vuln -oN scan.txt target` |
-| `-oX file` | XML output for parsing | `nmap --script discovery -oX results.xml target` |
-| `--open` | Show only open ports | `nmap --script default --open target` |
+
+|Option    |Purpose               |Example                                         |
+|----------|----------------------|------------------------------------------------|
+|`-oN file`|Normal output to file |`nmap --script vuln -oN scan.txt target`        |
+|`-oX file`|XML output for parsing|`nmap --script discovery -oX results.xml target`|
+|`--open`  |Show only open ports  |`nmap --script default --open target`           |
 
 ## 🧪 Real Lab Examples
 
 ### Example 1: HTTP Service Enumeration (From Lab Screenshot)
+
 ```bash
 # Step 1: Basic port scan to identify services
 nmap demo1.ine.local
@@ -98,6 +108,7 @@ nmap --script http-title,http-headers demo1.ine.local
 ```
 
 ### Example 2: Comprehensive Service Detection
+
 ```bash
 # Service version detection with NSE
 nmap -sV --script default demo1.ine.local
@@ -109,6 +120,7 @@ nmap --script vuln demo1.ine.local
 ```
 
 ### Example 3: Multiple Target Network Scanning
+
 ```bash
 # Network discovery with NSE
 nmap --script broadcast-ping 192.180.108.0/24
@@ -122,12 +134,14 @@ nmap --script smb-enum-shares 192.180.108.0/24 -p 445
 ## 🎯 eJPT Exam Focus
 
 ### Essential Skills for eJPT:
+
 - **HTTP enumeration (40%)** - Critical for web application testing
-- **SMB enumeration (30%)** - Common in Windows environments  
+- **SMB enumeration (30%)** - Common in Windows environments
 - **Service detection (20%)** - Identifying attack vectors
 - **Vulnerability scanning (10%)** - Finding exploitable services
 
 ### Critical Commands to Master:
+
 ```bash
 # Must-know commands for exam
 nmap --script http-enum target           # Web directory enumeration
@@ -137,23 +151,25 @@ nmap --script ssh-hostkey target         # SSH key fingerprinting
 ```
 
 ### eJPT Exam Scenarios:
-1. **Web Application Discovery:** Use http-* scripts to enumerate web services
-   - Required skills: HTTP enumeration, directory discovery
-   - Expected commands: `--script http-enum,http-title,http-methods`
-   - Success criteria: Identify upload forms, admin panels, hidden directories
 
-2. **Network Service Enumeration:** Discover and enumerate various network services
-   - Required skills: Multi-protocol enumeration
-   - Expected commands: `--script smb-*,ftp-*,ssh-*`  
-   - Success criteria: Find accessible shares, anonymous access, version information
+1. **Web Application Discovery:** Use http-* scripts to enumerate web services
+- Required skills: HTTP enumeration, directory discovery
+- Expected commands: `--script http-enum,http-title,http-methods`
+- Success criteria: Identify upload forms, admin panels, hidden directories
+1. **Network Service Enumeration:** Discover and enumerate various network services
+- Required skills: Multi-protocol enumeration
+- Expected commands: `--script smb-*,ftp-*,ssh-*`
+- Success criteria: Find accessible shares, anonymous access, version information
 
 ### Exam Tips and Tricks:
+
 - **Combine scripts:** Use comma-separated script names for efficiency
 - **Use categories:** `--script safe` for non-intrusive scanning
 - **Check script args:** Many scripts have useful parameters via `--script-args`
 - **Save outputs:** Always use `-oN` to save results for reporting
 
 ### Common eJPT Questions:
+
 - Enumerate web directories and identify upload functionality
 - Find SMB shares accessible without authentication
 - Identify service versions for vulnerability research
@@ -161,9 +177,11 @@ nmap --script ssh-hostkey target         # SSH key fingerprinting
 ## ⚠️ Common Issues & Troubleshooting
 
 ### Issue 1: Scripts Not Found or Outdated
+
 **Problem:** Script database outdated or missing scripts
 **Cause:** NSE scripts not updated or custom script location issues
 **Solution:**
+
 ```bash
 # Update NSE script database
 nmap --script-updatedb
@@ -174,8 +192,10 @@ locate http-enum.nse
 ```
 
 ### Issue 2: Script Arguments Not Working
+
 **Problem:** Script arguments not being passed correctly
 **Solution:**
+
 ```bash
 # Correct syntax with script arguments
 nmap --script http-enum --script-args http-enum.displayall target
@@ -185,8 +205,10 @@ nmap --script-help http-enum
 ```
 
 ### Issue 3: Permission Issues with Scripts
+
 **Problem:** Scripts require root privileges for certain operations
 **Solution:**
+
 ```bash
 # Run with appropriate privileges
 sudo nmap --script smb-enum-shares target
@@ -196,8 +218,10 @@ nmap -sT --script default target
 ```
 
 ### Issue 4: Script Performance Issues
+
 **Problem:** Scripts running slowly or timing out
 **Optimization:**
+
 ```bash
 # Increase timing template
 nmap -T4 --script http-enum target
@@ -209,6 +233,7 @@ nmap --script vuln --script-args max-parallelism=10 target
 ## 🔗 Integration with Other Tools
 
 ### Primary Integration: Nmap → NSE → Metasploit
+
 ```bash
 # Step 1: Nmap discovers services
 nmap -sV --script default target > services.txt
@@ -222,6 +247,7 @@ grep -i "CVE\|exploit" vulnerabilities.txt
 ```
 
 ### Secondary Integration: NSE → Manual Testing
+
 ```bash
 # HTTP enumeration results guide manual testing
 nmap --script http-enum target | grep -E "(Interesting|Found)"
@@ -229,6 +255,7 @@ nmap --script http-enum target | grep -E "(Interesting|Found)"
 ```
 
 ### Advanced Workflows:
+
 ```bash
 # Comprehensive enumeration pipeline
 nmap -p- --script discovery target               # Full port discovery
@@ -239,12 +266,14 @@ nmap -p$(http_ports) --script http-* target      # Web-specific scanning
 ## 📝 Documentation and Reporting
 
 ### Evidence Collection Requirements:
+
 1. **Screenshots:** NSE script outputs showing discovered services/vulnerabilities
-2. **Command Outputs:** Full nmap results with script outputs  
-3. **Log Files:** Save all scan results with timestamps
-4. **Script Details:** Document which scripts were used and why
+1. **Command Outputs:** Full nmap results with script outputs
+1. **Log Files:** Save all scan results with timestamps
+1. **Script Details:** Document which scripts were used and why
 
 ### Report Template Structure:
+
 ```markdown
 ## NSE Scanning Results
 
@@ -266,16 +295,18 @@ nmap --script vuln demo1.ine.local
 ```
 
 ### Key Findings
+
 - HTTP service on port 80 running XODA web application
 - File upload functionality discovered at /upload.php
 - Anonymous access enabled on discovered directories
 
 ### Recommendations
+
 - Implement proper file upload validation
 - Restrict directory browsing permissions
 - Update web application to latest version
-```
 
+```
 ### Automation Scripts:
 ```bash
 # Automated NSE enumeration script
@@ -291,21 +322,25 @@ echo "NSE enumeration complete. Check output files."
 ## 📚 Additional Resources
 
 ### Official Documentation:
+
 - NSE Documentation: https://nmap.org/book/nse.html
 - Script Database: https://nmap.org/nsedoc/
 - NSE Tutorial: https://nmap.org/book/nse-tutorial.html
 
 ### Learning Resources:
+
 - Nmap Network Scanning book: https://nmap.org/book/
 - NSE Script Writing: https://nmap.org/book/nse-script-format.html
-- Video tutorials: Search for "NSE scripting tutorials"
+- Video tutorials: Search for “NSE scripting tutorials”
 
 ### Community Resources:
+
 - Nmap mailing lists: https://nmap.org/mailman/listinfo/
 - GitHub NSE scripts: https://github.com/nmap/nmap/tree/master/scripts
 - Security forums discussing NSE usage
 
 ### Related Tools:
+
 - Masscan: High-speed port scanner alternative
-- Zmap: Internet-wide network scanner  
+- Zmap: Internet-wide network scanner
 - Nessus/OpenVAS: Comprehensive vulnerability scanners that complement NSE
