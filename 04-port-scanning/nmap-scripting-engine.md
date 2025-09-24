@@ -3,7 +3,7 @@
 > **Advanced Port Scanning, Service Detection, and Vulnerability Assessment**
 
 **Document Path:** `04-port-scanning/nmap-scripting-engine.md`  
-**Study Level:** Intermediate to Advanced
+**Level:** Intermediate to Advanced
 
 ---
 
