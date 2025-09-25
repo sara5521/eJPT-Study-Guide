@@ -1,463 +1,713 @@
-# 🐧 Linux Essentials for eJPT - Command Line Mastery
+# 🐧 Linux Essentials for eJPT - Complete Command Line Mastery Guide
 
-Essential Linux command line skills and file system knowledge for penetration testing and eJPT exam success.
-**Location:** `01-theory-foundations/linux-essentials.md`
+**Document Path:** `01-theory-foundations/linux-essentials.md`  
 
-## 🎯 What is Linux Command Line Proficiency?
+## 📋 Table of Contents
+1. [Introduction & Objectives](#introduction--objectives)
+2. [Linux Foundation Concepts](#linux-foundation-concepts)
+3. [File System Navigation & Management](#file-system-navigation--management)
+4. [Text Processing & Data Analysis](#text-processing--data-analysis)
+5. [Process & System Management](#process--system-management)
+6. [Permissions & Security](#permissions--security)
+7. [Network Commands](#network-commands)
+8. [Advanced Command Techniques](#advanced-command-techniques)
+9. [Practical Lab Scenarios](#practical-lab-scenarios)
+10. [eJPT Exam Focus](#ejpt-exam-focus)
+11. [Quick Reference Cards](#quick-reference-cards)
 
-Linux command line proficiency is fundamental for penetration testing and cybersecurity. The eJPT exam expects candidates to navigate Linux systems efficiently, manage files, processes, and networks using terminal commands. Key capabilities include:
-- File system navigation and manipulation
-- Process management and monitoring
-- Network configuration and troubleshooting
-- Text processing and data analysis
-- Permission management and user control
+---
 
-## 📦 Essential Linux Concepts
+## 🎯 Introduction & Objectives
 
-### Linux File System Hierarchy:
-```bash
-/               # Root directory
-├── bin/        # Essential binary commands
-├── etc/        # Configuration files
-├── home/       # User home directories
-├── tmp/        # Temporary files
-├── var/        # Variable data (logs)
-├── usr/        # User programs
-└── opt/        # Optional software
+### Why Linux Commands Matter for Pentesting
+- **95%** of penetration testing tools run on Linux
+- **Essential** for post-exploitation activities
+- **Required** for log analysis and evidence collection
+- **Fundamental** for understanding target systems
+
+### Learning Objectives
+- Navigate Linux file systems with confidence
+- Analyze system configurations and log files
+- Manage processes and system resources
+- Configure network settings and troubleshoot connectivity
+- Apply security concepts through file permissions
+- Automate repetitive tasks with command combinations
+
+---
+
+## 🏗️ Linux Foundation Concepts
+
+### File System Hierarchy Standard (FHS)
+```
+/                      # Root directory - everything starts here
+├── bin/               # Essential user binaries (ls, cp, mv)
+├── boot/              # Boot loader files and kernel
+├── dev/               # Device files (/dev/sda1, /dev/null)
+├── etc/               # System configuration files
+│   ├── passwd         # User account information
+│   ├── shadow         # Encrypted passwords
+│   ├── group          # Group information
+│   ├── hosts          # Host name resolution
+│   └── crontab        # Scheduled tasks
+├── home/              # User home directories
+├── lib/               # Essential shared libraries
+├── tmp/               # Temporary files (cleared on reboot)
+├── usr/               # User programs and data
+├── var/               # Variable data
+│   ├── log/           # System log files
+│   ├── www/           # Web server data
+│   └── spool/         # Queued data
+└── root/              # Root user home directory
 ```
 
-### Command Structure:
+### Command Structure
 ```bash
-# Basic syntax
 command [options] [arguments]
 
-# Example
+# Example breakdown:
 ls -la /home/user
+│  │   └── argument (path)
+│  └── options (long format + hidden files)
+└── command
 ```
 
-## 🔧 File System Navigation and Management
+### Essential Concepts
+| Concept | Description | Example |
+|---------|-------------|---------|
+| **Absolute Path** | Full path from root | `/home/user/file.txt` |
+| **Relative Path** | Path from current directory | `../file.txt` |
+| **Hidden Files** | Files starting with dot | `.bashrc`, `.ssh/` |
+| **Wildcards** | Pattern matching | `*.txt`, `file?` |
 
-### Navigation Commands:
+---
+
+## 📁 File System Navigation & Management
+
+### Core Navigation Commands
+
+#### Directory Navigation
 ```bash
-# Print working directory
-pwd
+# Show current location
+pwd                          # Print Working Directory
 
 # List directory contents
-ls                    # Basic listing
-ls -l                 # Long format
-ls -la                # Include hidden files
-ls -lh                # Human readable sizes
+ls                           # Basic listing
+ls -l                        # Long format with permissions
+ls -la                       # Include hidden files
+ls -lah                      # Human-readable sizes
+ls -lt                       # Sort by modification time
+ls -lS                       # Sort by file size
 
 # Change directory
-cd /path/to/directory # Absolute path
-cd ../                # Parent directory
-cd ~                  # Home directory
-cd -                  # Previous directory
+cd /path/to/directory        # Absolute path
+cd relative/path             # Relative path
+cd ..                        # Parent directory
+cd ~                         # Home directory
+cd -                         # Previous directory
 ```
 
-### File Operations:
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `cp` | Copy files/directories | `cp file1 file2` |
-| `mv` | Move/rename files | `mv oldname newname` |
-| `rm` | Remove files | `rm filename` |
-| `mkdir` | Create directory | `mkdir dirname` |
-| `rmdir` | Remove empty directory | `rmdir dirname` |
-| `touch` | Create empty file | `touch filename` |
-| `find` | Search for files | `find /path -name "*.txt"` |
-| `locate` | Quick file search | `locate filename` |
-
-### File Content Management:
+#### File Operations
 ```bash
-# View file contents
-cat filename          # Display entire file
-less filename         # Page through file
-head filename         # First 10 lines
-tail filename         # Last 10 lines
-tail -f filename      # Follow file changes
+# Create files and directories
+touch filename               # Create empty file
+mkdir dirname                # Create directory
+mkdir -p path/to/nested/dir  # Create nested directories
 
-# Text processing
-grep "pattern" file   # Search for pattern
-grep -r "text" /path  # Recursive search
-sort filename         # Sort file contents
-uniq filename         # Remove duplicates
-wc filename          # Word count
+# View file contents
+cat filename                 # Display entire file
+less filename                # Page through file
+head filename                # First 10 lines
+tail filename                # Last 10 lines
+tail -f filename             # Follow file changes
+
+# Copy, move, delete
+cp source destination        # Copy file
+cp -r source_dir dest_dir    # Copy directory recursively
+mv oldname newname           # Move/rename
+rm filename                  # Remove file
+rm -rf directory             # Remove directory recursively
 ```
 
-## ⚙️ Process and System Management
+### File Searching
+```bash
+# Find command - the Swiss Army knife
+find /path -name "filename"      # Find by name
+find /path -name "*.txt"         # Find by pattern
+find /path -type f               # Files only
+find /path -type d               # Directories only
+find /path -size +100M           # Files larger than 100MB
+find /path -mtime -7             # Modified in last 7 days
+find /path -perm 755             # By permissions
+find /path -user username        # By owner
 
-### Process Commands:
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `ps` | List running processes | `ps aux` |
-| `top` | Real-time processes | `top` |
-| `htop` | Enhanced process viewer | `htop` |
-| `kill` | Terminate process | `kill PID` |
-| `killall` | Kill by name | `killall firefox` |
-| `jobs` | List active jobs | `jobs` |
-| `nohup` | Run command immune to hangups | `nohup command &` |
+# Other search tools
+locate filename              # Fast database search
+which command                # Find command location
+whereis command              # Find binaries and manuals
+```
 
-### System Information:
+---
+
+## 📝 Text Processing & Data Analysis
+
+### Pattern Matching with Grep
+```bash
+# Basic grep operations
+grep "pattern" file.txt          # Search for pattern
+grep -i "pattern" file.txt       # Case-insensitive
+grep -v "pattern" file.txt       # Invert match (exclude)
+grep -n "pattern" file.txt       # Show line numbers
+grep -r "pattern" /path/         # Recursive search
+
+# Advanced patterns
+grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" file.txt  # IP addresses
+grep "^pattern" file.txt         # Start of line
+grep "pattern$" file.txt         # End of line
+```
+
+### Text Processing Tools
+
+#### AWK - Pattern Scanning
+```bash
+# Basic AWK operations
+awk '{print $1}' file.txt        # Print first field
+awk '{print $1, $3}' file.txt    # Print specific fields
+awk -F: '{print $1}' /etc/passwd # Use colon as separator
+awk '/pattern/' file.txt         # Lines matching pattern
+
+# Advanced examples
+awk '{sum+=$1} END {print sum}' numbers.txt    # Sum first column
+awk 'length($0) > 80' file.txt                # Lines longer than 80 chars
+```
+
+#### SED - Stream Editor
+```bash
+# Basic SED operations
+sed 's/old/new/' file.txt        # Replace first occurrence
+sed 's/old/new/g' file.txt       # Replace all occurrences
+sed -i 's/old/new/g' file.txt    # In-place editing
+sed -n '5p' file.txt             # Print line 5 only
+sed '/pattern/d' file.txt        # Delete lines matching pattern
+```
+
+#### Sort and Unique Operations
+```bash
+# Sort operations
+sort file.txt                    # Alphabetical sort
+sort -n file.txt                 # Numerical sort
+sort -r file.txt                 # Reverse sort
+sort -k2 file.txt                # Sort by 2nd field
+
+# Unique operations
+uniq file.txt                    # Remove consecutive duplicates
+uniq -c file.txt                 # Count occurrences
+sort file.txt | uniq -c | sort -nr  # Count and sort by frequency
+```
+
+#### Cut and Field Extraction
+```bash
+# Cut operations
+cut -d: -f1 /etc/passwd          # Extract first field
+cut -d: -f1,3 /etc/passwd        # Extract fields 1 and 3
+cut -c1-10 file.txt              # Extract characters 1-10
+```
+
+---
+
+## ⚙️ Process & System Management
+
+### Process Information and Control
+
+#### Viewing Processes
+```bash
+# Basic process listing
+ps                               # Processes in current terminal
+ps aux                           # All processes, detailed
+ps aux --sort=-%cpu              # Sort by CPU usage
+ps aux --sort=-%mem              # Sort by memory usage
+ps -ef                           # Full format listing
+
+# Process tree
+pstree                           # Process tree view
+pstree -p                        # Include process IDs
+
+# Real-time monitoring
+top                              # Real-time process monitor
+htop                             # Enhanced version (if available)
+```
+
+#### Process Control
+```bash
+# Starting processes
+command &                        # Run in background
+nohup command &                  # Run immune to hangups
+
+# Job control
+jobs                             # List active jobs
+fg                               # Foreground last job
+bg                               # Background last job
+
+# Stopping processes
+kill PID                         # Send TERM signal
+kill -9 PID                      # Send KILL signal (force)
+killall process_name             # Kill all by name
+pkill -f pattern                 # Kill by pattern
+```
+
+### System Information Commands
 ```bash
 # System details
-uname -a              # System information
-whoami               # Current user
-id                   # User and group IDs
-uptime               # System uptime
-df -h                # Disk usage
-free -h              # Memory usage
-lscpu                # CPU information
+uname -a                         # All system information
+hostname                         # System hostname
+uptime                           # System uptime and load
+whoami                           # Current username
+id                               # User and group IDs
+who                              # Logged in users
 
-# Network information
-ifconfig             # Network interfaces (deprecated)
-ip addr show         # Network interfaces (modern)
-netstat -tuln        # Network connections
-ss -tuln             # Socket statistics (modern)
+# Hardware information
+lscpu                            # CPU information
+lsblk                            # Block devices
+free -h                          # Memory usage
+df -h                            # Disk usage
+
+# Environment
+env                              # Environment variables
+echo $PATH                       # PATH variable
 ```
 
-## 🔒 Permissions and Ownership
+---
 
-### Understanding Permissions:
+## 🔒 Permissions & Security
+
+### Understanding Permissions
 ```bash
-# Permission format: rwxrwxrwx (owner group other)
-# r = read (4), w = write (2), x = execute (1)
+# Permission structure
+-rwxrwxrwx
+│││││││││
+│││└┴┴─── Other permissions (r=read, w=write, x=execute)
+││└┴──── Group permissions  
+│└───── Owner permissions
+└────── File type
 
-# View permissions
-ls -l filename
-
-# Example output:
--rwxr-xr--  1 user group 1024 Jan 15 10:30 filename
-# ^ file type
-#  ^^^ owner permissions (rwx = 7)
-#     ^^^ group permissions (r-x = 5)  
-#        ^^^ other permissions (r-- = 4)
+# Numeric representation
+r = 4, w = 2, x = 1
+755 = rwxr-xr-x (7=rwx, 5=r-x, 5=r-x)
+644 = rw-r--r-- (6=rw-, 4=r--, 4=r--)
 ```
 
-### Permission Commands:
+### Permission Commands
 ```bash
-# Change permissions
-chmod 755 filename    # Numeric method
-chmod u+x filename    # Symbolic method
-chmod -R 644 /path    # Recursive
+# Viewing permissions
+ls -l filename                   # Show file permissions
+ls -ld directory                 # Show directory permissions
 
-# Change ownership
-chown user:group file # Change owner and group
-chown user file       # Change owner only
-chgrp group file      # Change group only
+# Changing permissions
+chmod 755 filename               # Numeric method
+chmod u+x filename               # Add execute for owner
+chmod g-w filename               # Remove write for group
+chmod -R 644 directory           # Recursive change
 
-# Special permissions
-chmod +t directory    # Sticky bit
-chmod u+s file        # SUID bit
-chmod g+s file        # SGID bit
+# Changing ownership
+chown user filename              # Change owner
+chown user:group filename        # Change owner and group
+chgrp group filename             # Change group only
 ```
 
-## 🧪 Real Lab Examples
-
-### Example 1: Basic File System Navigation
+### Special Permissions
 ```bash
-# Navigate and explore system
-pwd
-# Output: /home/pentester
+# SUID (Set User ID)
+find / -perm -4000 2>/dev/null   # Find SUID files
+chmod 4755 filename              # Set SUID
 
-cd /etc
-ls -la | head -10
-# Output: Configuration files listing
+# SGID (Set Group ID) 
+find / -perm -2000 2>/dev/null   # Find SGID files
+chmod 2755 filename              # Set SGID
 
-find /etc -name "*.conf" | head -5
-# Output: 
-# /etc/dhcp/dhclient.conf
-# /etc/kernel-img.conf
-# /etc/adduser.conf
-# /etc/debconf.conf
-# /etc/deluser.conf
-
-grep -r "127.0.0.1" /etc/hosts
-# Output: 127.0.0.1	localhost
+# Sticky bit
+chmod 1755 directory             # Set sticky bit
 ```
 
-### Example 2: Process Management in Penetration Testing
+### User and Group Management
 ```bash
-# Start background process
-nmap -sS 192.168.1.0/24 > scan_results.txt &
-# Output: [1] 1234
+# User information
+whoami                           # Current username
+id                               # User and group IDs
+groups                           # Current user groups
 
-# Check running processes
-ps aux | grep nmap
-# Output: pentester 1234  0.1  0.2  12345  2345 pts/0 R+ 10:30 0:01 nmap -sS 192.168.1.0/24
-
-# Monitor system resources
-top -p 1234
-# Output: Real-time process information
-
-# Check scan results
-tail -f scan_results.txt
-# Output: Live scan progress
+# Important files
+cat /etc/passwd                  # User accounts
+cat /etc/shadow                  # Encrypted passwords (requires sudo)
+cat /etc/group                   # Group information
 ```
 
-### Example 3: File Analysis and Data Processing
+---
+
+## 🌐 Network Commands
+
+### Network Interface Information
 ```bash
-# Analyze web server logs
-tail -100 /var/log/apache2/access.log | grep "404"
-# Output: 404 error entries from last 100 lines
+# Modern tools (ip command)
+ip addr show                     # Show all interfaces
+ip route show                    # Show routing table
+ip neighbor show                 # Show ARP table
 
-# Extract unique IP addresses
-awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -nr | head -10
-# Output: Top 10 IP addresses by request count
-
-# Search for suspicious patterns
-grep -i "sql\|union\|select" /var/log/apache2/access.log
-# Output: Potential SQL injection attempts
+# Legacy tools
+ifconfig                         # Show interfaces
+route -n                         # Show routing table
+arp -a                           # Show ARP table
 ```
 
-### Example 4: Network Configuration and Troubleshooting
+### Network Connectivity
 ```bash
-# Check network interfaces
-ip addr show
-# Output: Network interface details with IP addresses
+# Basic connectivity
+ping -c 4 google.com             # Ping with count limit
+traceroute google.com            # Trace route to destination
 
-# View routing table
-ip route show
-# Output: 
-# default via 192.168.1.1 dev eth0 proto dhcp metric 100
-# 192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100
+# DNS resolution
+nslookup google.com              # DNS lookup
+dig google.com                   # Detailed DNS info
+host google.com                  # Simple DNS lookup
 
-# Check listening ports
-ss -tuln | grep :80
-# Output: tcp LISTEN 0 128 *:80 *:*
-
-# Test connectivity
-ping -c 3 8.8.8.8
-# Output: 3 ping packets to Google DNS with response times
+# Port testing
+nc -zv hostname port             # Test port connectivity
+telnet hostname port             # Interactive connection
 ```
+
+### Network Services and Connections
+```bash
+# Active connections
+netstat -tuln                    # TCP/UDP listening ports
+netstat -tulnp                   # Include process info
+ss -tuln                         # Modern alternative to netstat
+ss -tulnp                        # Include process info
+
+# Process and port information
+lsof -i                          # All network connections
+lsof -i :22                      # Connections on port 22
+lsof -i tcp:80                   # TCP connections on port 80
+```
+
+---
+
+## 🚀 Advanced Command Techniques
+
+### Command Chaining
+```bash
+# Command sequencing
+command1 && command2             # Run command2 if command1 succeeds
+command1 || command2             # Run command2 if command1 fails
+command1 ; command2              # Run command2 regardless
+
+# Examples
+mkdir newdir && cd newdir        # Create and enter directory
+ls file.txt || touch file.txt   # Create if doesn't exist
+```
+
+### Input/Output Redirection
+```bash
+# Output redirection
+command > file.txt               # Redirect to file (overwrite)
+command >> file.txt              # Redirect to file (append)
+command 2> error.log             # Redirect errors only
+command > output.txt 2>&1        # Redirect both stdout and stderr
+
+# Pipes
+command1 | command2              # Pipe output to next command
+command1 | tee file.txt | command2  # Save to file and continue pipe
+```
+
+### Advanced Text Processing
+```bash
+# Log analysis examples
+cat /var/log/apache2/access.log | \
+    awk '{print $1}' | \
+    sort | uniq -c | \
+    sort -nr | head -10          # Top 10 IP addresses
+
+# Find large files
+find /var/log -type f -exec du -h {} \; | \
+    sort -hr | head -20          # 20 largest files
+
+# System resource analysis
+ps aux | sort -nrk 3,3 | head -5    # Top CPU processes
+ps aux | sort -nrk 4,4 | head -5    # Top memory processes
+```
+
+### File Compression
+```bash
+# TAR archives
+tar -cvf archive.tar files/      # Create tar archive
+tar -czvf archive.tar.gz files/  # Create compressed archive
+tar -xvf archive.tar             # Extract archive
+
+# ZIP operations
+zip -r archive.zip files/        # Create zip archive
+unzip archive.zip                # Extract zip archive
+
+# Other compression
+gzip file.txt                    # Compress file
+gunzip file.txt.gz               # Decompress file
+```
+
+---
+
+## 🧪 Practical Lab Scenarios
+
+### Scenario 1: System Information Gathering
+```bash
+# Complete reconnaissance script
+echo "=== SYSTEM RECONNAISSANCE ==="
+echo "Date: $(date)"
+echo "User: $(whoami)"
+echo "System: $(uname -a)"
+echo ""
+
+echo "=== NETWORK INFO ==="
+hostname -I 2>/dev/null || ip addr show | grep "inet "
+ss -tuln | grep LISTEN | head -5
+echo ""
+
+echo "=== USER INFO ==="
+who
+cat /etc/passwd | tail -3
+echo ""
+
+echo "=== PROCESSES ==="
+ps aux --sort=-%cpu | head -5
+```
+
+### Scenario 2: Log Analysis
+```bash
+# Security log analysis
+echo "=== SECURITY ANALYSIS ==="
+
+# Failed login attempts
+echo "Failed login attempts:"
+grep "Failed password" /var/log/auth.log 2>/dev/null | \
+    awk '{print $11}' | sort | uniq -c | sort -nr | head -5
+
+# SSH connections
+echo "SSH connections:"
+grep "Accepted password" /var/log/auth.log 2>/dev/null | tail -5
+
+# Web server analysis
+echo "Suspicious web requests:"
+grep -E "(union|select|script)" /var/log/apache2/access.log 2>/dev/null | tail -3
+```
+
+### Scenario 3: Network Analysis
+```bash
+# Network diagnostic script
+echo "=== NETWORK DIAGNOSTICS ==="
+
+# Connectivity tests
+ping -c 1 8.8.8.8 > /dev/null 2>&1 && echo "Internet: OK" || echo "Internet: FAILED"
+ping -c 1 google.com > /dev/null 2>&1 && echo "DNS: OK" || echo "DNS: FAILED"
+
+# Interface status
+echo "Interfaces:"
+ip addr show | grep -E "^[0-9]+:|inet "
+
+# Active services
+echo "Listening services:"
+ss -tuln | grep LISTEN | head -5
+```
+
+---
 
 ## 🎯 eJPT Exam Focus
 
-### Essential Skills for eJPT (85% exam importance):
-- **File system navigation (25%)** - Navigate directories efficiently during labs
-- **File content analysis (20%)** - Analyze configuration files and logs  
-- **Process management (15%)** - Manage scanning tools and payloads
-- **Permission management (15%)** - Understand file permissions for exploitation
-- **Network troubleshooting (10%)** - Diagnose connectivity issues
+### Critical Skills for eJPT Success
 
-### Critical Commands to Master:
+#### File System Navigation (25% of exam weight)
+**Must master:**
+- Quick directory navigation
+- Efficient file searching
+- Understanding file hierarchy
+
+**Essential commands:**
 ```bash
-# File system navigation (must-know)
-ls -la                # Essential for file discovery
-find /path -name "*"  # Critical for file searching  
-grep -r "pattern" /   # Required for content searching
-cat /etc/passwd       # Standard file for user enum
-
-# Process management (exam required)
-ps aux               # Process listing for exploit verification
-netstat -tuln        # Network service identification
-kill -9 PID          # Force kill processes if needed
+find /etc -name "*ssh*" -type f      # Find SSH configs
+ls -la $(which nmap)                 # Command details
+cd /var/www/html && find . -name "*.php"  # Web exploration
 ```
 
-### eJPT Exam Scenarios:
-1. **File System Exploration:**
-   - Required skills: Navigate to specific directories, find configuration files
-   - Expected commands: `ls`, `cd`, `find`, `cat`
-   - Success criteria: Locate target files within time limit
+#### Text Processing (20% of exam weight)
+**Key abilities:**
+- Extract information from files
+- Search through multiple files
+- Process log files efficiently
 
-2. **Log Analysis for Evidence:**
-   - Required skills: Search through log files for specific patterns
-   - Expected commands: `grep`, `tail`, `awk`, `sort`
-   - Success criteria: Extract relevant information from logs
-
-3. **Service Discovery:**
-   - Required skills: Identify running services and network configurations
-   - Expected commands: `ps`, `netstat`, `ss`, `lsof`
-   - Success criteria: Map running services to exploit opportunities
-
-### Exam Tips and Tricks:
-- **Practice path completion:** Use Tab key for faster navigation
-- **Command history:** Use `history` and `!number` to repeat commands
-- **Multiple terminals:** Open several terminals for parallel tasks
-- **Output redirection:** Save command outputs for later reference
-
-### Common eJPT Questions:
-- Navigate to specific directories and locate configuration files
-- Extract specific information from system logs
-- Identify running services and their configurations
-- Manage file permissions for payload deployment
-
-## ⚠️ Common Issues & Troubleshooting
-
-### Issue 1: Permission Denied Errors
-**Problem:** Cannot access files or execute commands due to insufficient permissions
-**Cause:** Lack of appropriate read, write, or execute permissions
-**Solution:**
+**Critical commands:**
 ```bash
-# Check current permissions
-ls -l filename
-
-# Fix permissions if you own the file
-chmod +r filename      # Add read permission
-chmod +x filename      # Add execute permission
-
-# Use sudo for administrative tasks (if available)
-sudo cat /etc/shadow   # Read privileged files
+grep -r "password" /etc/             # Find password references
+awk -F: '$3 >= 1000 {print $1}' /etc/passwd  # Regular users
+tail -f /var/log/auth.log | grep ssh # Monitor SSH
 ```
 
-### Issue 2: Command Not Found
-**Problem:** System cannot find the specified command
-**Solution:**
+#### Process Management (15% of exam weight)
+**Important skills:**
+- Monitor running processes
+- Control process execution
+- Identify suspicious activity
+
+**Key commands:**
 ```bash
-# Check if command exists
-which command_name     # Show command location
-type command_name      # Show command type
-
-# Update PATH if needed
-echo $PATH            # Show current PATH
-export PATH=$PATH:/new/path  # Add new path
-
-# Install missing package (if possible)
-apt search package_name
-sudo apt install package_name
+ps aux --sort=-%cpu | head -5        # Top CPU processes
+lsof -i :80                          # What's using port 80
+kill -9 $(pgrep suspicious_process)  # Force kill process
 ```
 
-### Issue 3: File System Navigation Confusion
-**Problem:** Getting lost in the file system hierarchy
-**Prevention:**
+#### Network Analysis (15% of exam weight)
+**Network skills:**
+- Identify listening services
+- Analyze connections
+- Troubleshoot connectivity
+
+**Essential commands:**
 ```bash
-# Always know where you are
-pwd                   # Print working directory
-
-# Use absolute paths for certainty
-ls /etc/apache2/      # Absolute path
-ls -la $(pwd)         # List current directory explicitly
-
-# Bookmark important locations
-alias logs='cd /var/log'
-alias config='cd /etc'
+ss -tuln | grep :22                  # SSH service check
+netstat -tulnp | grep :80            # Web service check
+nc -zv target 80                     # Port connectivity test
 ```
 
-### Issue 4: Process Management Problems
-**Problem:** Processes not responding or consuming too many resources
-**Solution:**
+#### Permissions & Security (15% of exam weight)
+**Security focus:**
+- Understand permission implications
+- Find privilege escalation opportunities
+- Analyze file ownership
+
+**Security commands:**
 ```bash
-# Identify problematic processes
-top                   # Interactive process monitor
-ps aux --sort=-%cpu   # Sort by CPU usage
-
-# Graceful termination
-kill PID              # Send TERM signal
-kill -15 PID          # Explicit TERM signal
-
-# Force termination if needed
-kill -9 PID           # Send KILL signal
-killall process_name  # Kill all instances
+find / -perm -4000 2>/dev/null       # SUID binaries
+find /etc -writable 2>/dev/null      # Writable configs
+ls -la /etc/passwd /etc/shadow       # Critical files
 ```
 
-## 🔗 Integration with Other Tools
+#### System Information (10% of exam weight)
+**Information gathering:**
+- Collect system details
+- Identify services
+- Map system architecture
 
-### Primary Integration: Linux Commands + Penetration Testing Tools
+**Info commands:**
 ```bash
-# File system exploration before exploitation
-find /var/www -name "*.php" -exec grep -l "mysql_connect" {} \;
-# Find PHP files with database connections
-
-# Process management for tool execution
-nmap -sS target_ip > results.txt 2>&1 &  # Background scan
-jobs                                      # Check job status
-fg %1                                     # Bring job to foreground
-
-# Log analysis after exploitation
-tail -f /var/log/auth.log | grep ssh     # Monitor SSH attempts
-grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort | uniq -c
+uname -a; cat /etc/*release; whoami; id  # System fingerprint
+ps aux | grep -E "(apache|mysql|ssh)"    # Service discovery
 ```
 
-### Integration with Network Tools:
+### Exam Success Tips
+
+#### Time Management
+- Practice commands until they become muscle memory
+- Use tab completion efficiently
+- Learn keyboard shortcuts (Ctrl+R for history)
+
+#### Common Pitfalls to Avoid
 ```bash
-# Combine network discovery with file operations
-nmap -sn 192.168.1.0/24 | grep "Nmap scan report" | awk '{print $5}' > live_hosts.txt
-for host in $(cat live_hosts.txt); do nmap -sV $host; done
+# Wrong - relative paths in exam
+find . -name config.txt
+
+# Correct - absolute paths
+find /etc -name config.txt
+
+# Wrong - messy output
+find / -name "*.conf"
+
+# Correct - clean output
+find / -name "*.conf" 2>/dev/null
 ```
 
-### Integration with Web Testing:
+#### Scoring Strategy
+Focus practice time based on exam weight:
+1. **File System** (25%) - Most important
+2. **Text Processing** (20%) - High impact
+3. **Process Management** (15%) - Medium priority
+4. **Network** (15%) - Medium priority
+5. **Security** (15%) - Critical for pentesting
+6. **System Info** (10%) - Quick wins
+
+---
+
+## 🔖 Quick Reference Cards
+
+### Essential Commands Summary
+
+#### File Operations
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `ls -la` | List with permissions | `ls -la /etc/` |
+| `find` | Search files | `find /etc -name "*.conf"` |
+| `grep -r` | Search in files | `grep -r "password" /etc/` |
+| `cat` | Display file | `cat /etc/passwd` |
+| `tail -f` | Follow changes | `tail -f /var/log/syslog` |
+
+#### Process Management
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `ps aux` | List processes | `ps aux \| grep apache` |
+| `top` | Real-time monitor | `top -o %CPU` |
+| `kill` | Terminate process | `kill -9 1234` |
+| `lsof` | Open files | `lsof -i :80` |
+
+#### Network Commands
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `ss -tuln` | Network connections | `ss -tuln \| grep :80` |
+| `ping` | Test connectivity | `ping -c 4 google.com` |
+| `netstat` | Network statistics | `netstat -tulnp` |
+
+#### System Information
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `uname -a` | System info | `uname -a` |
+| `whoami` | Current user | `whoami` |
+| `df -h` | Disk usage | `df -h` |
+| `free -h` | Memory usage | `free -h` |
+
+### Permission Quick Reference
+
+| Numeric | Symbolic | Meaning |
+|---------|----------|---------|
+| `755` | `rwxr-xr-x` | Owner: full, Others: read+execute |
+| `644` | `rw-r--r--` | Owner: read+write, Others: read |
+| `600` | `rw-------` | Owner only: read+write |
+| `777` | `rwxrwxrwx` | All: full permissions |
+
+### Common One-Liners
+
+#### System Analysis
 ```bash
-# Analyze web server configurations
-find /etc -name "*apache*" -o -name "*nginx*" | xargs ls -la
-grep -r "DocumentRoot" /etc/apache2/
-grep -r "server_name" /etc/nginx/
+# System overview
+echo "System: $(uname -a)"; echo "Users: $(who | wc -l)"; echo "Load: $(uptime)"
+
+# Top processes by CPU
+ps aux --sort=-%cpu | head -5 | awk '{printf "%-15s %s\n", $1, $11}'
+
+# Disk usage summary
+df -h | awk '$5+0 > 80 {print $5, $6}'
 ```
 
-## 📝 Documentation and Reporting
-
-### Evidence Collection Requirements:
-1. **Command History:** Save all executed commands for audit trail
-2. **System Information:** Document target system details
-3. **File Discoveries:** Record interesting files and their locations
-4. **Permission Analysis:** Note unusual file permissions
-
-### Report Template Structure:
-```markdown
-## Linux System Analysis
-
-### Target System Information
-- Hostname: $(hostname)
-- OS Version: $(cat /etc/os-release)  
-- Kernel Version: $(uname -r)
-- Current User: $(whoami)
-- User Privileges: $(id)
-
-### Commands Executed
+#### Network Analysis
 ```bash
-# Timestamped command history
-history | tail -20
+# Active connections summary
+ss -tuln | grep LISTEN | awk '{print $5}' | cut -d: -f2 | sort -n | uniq -c
+
+# Top IPs from access log
+awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -nr | head -5
 ```
 
-### Key Findings
-- Configuration files discovered
-- Interesting permissions found
-- Running services identified
-- Log entries of interest
-
-### File System Structure
-- Important directories mapped
-- Writable locations identified  
-- SUID/SGID files found
-```
-
-### Automation Scripts:
+#### Security Checks
 ```bash
-#!/bin/bash
-# Linux enumeration script
-echo "=== System Information ==="
-uname -a
-cat /etc/os-release
+# Failed login attempts by IP
+grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -nr
 
-echo "=== User Information ==="
-whoami
-id
-cat /etc/passwd
-
-echo "=== Network Configuration ==="
-ip addr show
-ss -tuln
-
-echo "=== Running Processes ==="
-ps aux --sort=-%cpu | head -10
+# Find SUID files
+find / -perm -4000 2>/dev/null | grep -v '/usr/bin/\(passwd\|su\|sudo\)'
 ```
 
-## 📚 Additional Resources
+---
 
-### Official Documentation:
-- Linux man pages: `man command_name`
-- GNU Coreutils: https://www.gnu.org/software/coreutils/
-- Linux Documentation Project: https://tldp.org/
+**Remember:** Practice these commands regularly, understand their output, and learn to chain them together for complex analysis tasks. The key to eJPT success is building muscle memory and confidence with these essential Linux skills.
 
-### Learning Resources:
-- OverTheWire Bandit: https://overthewire.org/wargames/bandit/
-- Linux Journey: https://linuxjourney.com/
-- ExplainShell: https://explainshell.com/
-
-### Community Resources:
-- r/linux4noobs: Reddit community for beginners
-- Linux.org forums: https://www.linux.org/forums/
-- Stack Overflow Linux tag: For specific questions
-
-### Related Tools:
-- Bash scripting: Automation and advanced command combinations
-- Vim/nano: Text editors for configuration files
-- Screen/tmux: Terminal multiplexers for session management
+**Good luck with your eJPT preparation!**
